@@ -139,6 +139,16 @@ export function useTelegramLink() {
   });
 }
 
+export function useUnlinkTelegram() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await api.delete('/users/me/telegram');
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['profile'] }),
+  });
+}
+
 export function useAddPushSubscription() {
   const qc = useQueryClient();
   return useMutation({
@@ -149,5 +159,13 @@ export function useAddPushSubscription() {
       await api.post('/users/me/push', sub);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['profile'] }),
+  });
+}
+
+export function useRemovePushSubscription() {
+  return useMutation({
+    mutationFn: async (endpoint: string) => {
+      await api.delete('/users/me/push', { data: { endpoint } });
+    },
   });
 }

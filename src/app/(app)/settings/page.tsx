@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   useAddPushSubscription,
   useProfile,
+  useRemovePushSubscription,
   useTelegramLink,
+  useUnlinkTelegram,
 } from '@/lib/hooks';
-import { subscribeToPush } from '@/lib/push';
+import {
+  getActivePushEndpoint,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from '@/lib/push';
 import { apiError } from '@/lib/api';
 
 function TelegramIcon() {
@@ -47,15 +53,28 @@ function CheckIcon() {
 export default function SettingsPage() {
   const { data: profile } = useProfile();
   const telegramLink = useTelegramLink();
+  const unlinkTelegram = useUnlinkTelegram();
   const addPush = useAddPushSubscription();
+  const removePush = useRemovePushSubscription();
 
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [pushMsg, setPushMsg] = useState<string | null>(null);
   const [pushError, setPushError] = useState(false);
+  // null while we probe this browser's current subscription state.
+  const [pushEnabled, setPushEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    void getActivePushEndpoint().then((endpoint) => setPushEnabled(!!endpoint));
+  }, []);
 
   const generateLink = async () => {
     const res = await telegramLink.mutateAsync();
     setLinkUrl(res.url);
+  };
+
+  const unlink = async () => {
+    await unlinkTelegram.mutateAsync();
+    setLinkUrl(null);
   };
 
   const enablePush = async () => {
@@ -64,7 +83,24 @@ export default function SettingsPage() {
     try {
       const sub = await subscribeToPush();
       await addPush.mutateAsync(sub);
+      setPushEnabled(true);
       setPushMsg('Push notifications enabled on this device');
+    } catch (e) {
+      setPushMsg(apiError(e));
+      setPushError(true);
+    }
+  };
+
+  const disablePush = async () => {
+    setPushMsg(null);
+    setPushError(false);
+    try {
+      const endpoint = await unsubscribeFromPush();
+      if (endpoint) {
+        await removePush.mutateAsync(endpoint);
+      }
+      setPushEnabled(false);
+      setPushMsg('Push notifications disabled on this device');
     } catch (e) {
       setPushMsg(apiError(e));
       setPushError(true);
@@ -99,12 +135,21 @@ export default function SettingsPage() {
 
         <div className="px-5 py-4">
           {profile?.telegramLinked ? (
-            <p className="text-sm text-ink-dim">
-              Chat ID:{' '}
-              <code className="rounded-md bg-elevated px-1.5 py-0.5 font-mono text-xs text-sky-400">
-                {profile.telegramChatId}
-              </code>
-            </p>
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-sm text-ink-dim">
+                Chat ID:{' '}
+                <code className="rounded-md bg-elevated px-1.5 py-0.5 font-mono text-xs text-sky-400">
+                  {profile.telegramChatId}
+                </code>
+              </p>
+              <button
+                onClick={unlink}
+                disabled={unlinkTelegram.isPending}
+                className="shrink-0 rounded-xl border border-rim px-4 py-2 text-sm font-medium text-ink-dim transition-colors hover:border-red-500/40 hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {unlinkTelegram.isPending ? 'Unlinking…' : 'Unlink'}
+              </button>
+            </div>
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-ink-dim">
@@ -147,19 +192,39 @@ export default function SettingsPage() {
             <h2 className="font-heading text-sm font-semibold text-ink">Web Push</h2>
             <p className="text-xs text-ink-dim">Browser notifications on this device</p>
           </div>
+          {pushEnabled && (
+            <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-armed-bg px-2.5 py-1 text-xs font-medium text-emerald-400">
+              <CheckIcon />
+              Enabled
+            </span>
+          )}
         </div>
 
         <div className="px-5 py-4 space-y-4">
           <p className="text-sm text-ink-dim">
-            Enable push notifications in this browser. You&apos;ll be prompted to grant permission.
+            {pushEnabled
+              ? 'Push notifications are enabled in this browser.'
+              : "Enable push notifications in this browser. You'll be prompted to grant permission."}
           </p>
-          <button
-            onClick={enablePush}
-            disabled={addPush.isPending}
-            className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition-all hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {addPush.isPending ? 'Enabling…' : 'Enable push notifications'}
-          </button>
+          {pushEnabled === null ? (
+            <div className="h-9 w-48 animate-pulse rounded-xl bg-elevated" />
+          ) : pushEnabled ? (
+            <button
+              onClick={disablePush}
+              disabled={removePush.isPending}
+              className="rounded-xl border border-rim px-4 py-2 text-sm font-semibold text-ink-dim transition-colors hover:border-red-500/40 hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {removePush.isPending ? 'Disabling…' : 'Disable push notifications'}
+            </button>
+          ) : (
+            <button
+              onClick={enablePush}
+              disabled={addPush.isPending}
+              className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition-all hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {addPush.isPending ? 'Enabling…' : 'Enable push notifications'}
+            </button>
+          )}
           {pushMsg && (
             <p
               className={`flex items-center gap-1.5 text-sm ${

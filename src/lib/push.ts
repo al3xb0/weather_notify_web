@@ -14,6 +14,31 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   return output;
 }
 
+/** Endpoint of this browser's active push subscription, or null if none. */
+export async function getActivePushEndpoint(): Promise<string | null> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return null;
+  }
+  const registration = await navigator.serviceWorker.getRegistration();
+  const subscription = await registration?.pushManager.getSubscription();
+  return subscription?.endpoint ?? null;
+}
+
+/** Unsubscribe this browser; returns the removed endpoint (for server cleanup). */
+export async function unsubscribeFromPush(): Promise<string | null> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return null;
+  }
+  const registration = await navigator.serviceWorker.getRegistration();
+  const subscription = await registration?.pushManager.getSubscription();
+  if (!subscription) {
+    return null;
+  }
+  const { endpoint } = subscription;
+  await subscription.unsubscribe();
+  return endpoint;
+}
+
 export async function subscribeToPush(): Promise<PushSubscriptionPayload> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     throw new Error('Push notifications are not supported in this browser');
