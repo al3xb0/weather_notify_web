@@ -1,7 +1,11 @@
 'use client';
 
 import React from 'react';
-import { useNotifications } from '@/lib/hooks';
+import {
+  useClearNotifications,
+  useDeleteNotification,
+  useNotifications,
+} from '@/lib/hooks';
 import { CHANNEL_LABELS } from '@/lib/types';
 
 function EmptyState() {
@@ -39,18 +43,35 @@ const CHANNEL_ICONS: Record<string, React.ReactElement> = {
 
 export default function NotificationsPage() {
   const { data, isLoading } = useNotifications();
+  const del = useDeleteNotification();
+  const clear = useClearNotifications();
+
+  const handleClear = () => {
+    if (window.confirm('Delete all notifications? This cannot be undone.')) {
+      clear.mutate();
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-ink">Notifications</h1>
-        <p className="mt-0.5 text-sm text-ink-dim">
-          {data ? `${data.total} alert${data.total !== 1 ? 's' : ''} logged` : 'Alert history'}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-ink">Notifications</h1>
+          <p className="mt-0.5 text-sm text-ink-dim">
+            {data ? `${data.total} alert${data.total !== 1 ? 's' : ''} logged` : 'Alert history'}
+          </p>
+        </div>
+        {data && data.items.length > 0 && (
+          <button
+            onClick={handleClear}
+            disabled={clear.isPending}
+            className="shrink-0 rounded-xl border border-danger-bg px-3.5 py-2 text-xs font-medium text-red-400 transition-colors hover:border-red-500/30 hover:bg-danger-bg disabled:opacity-50"
+          >
+            Clear all
+          </button>
+        )}
       </div>
 
-      {/* Loading skeleton */}
       {isLoading && (
         <div className="space-y-2">
           {[1, 2, 3, 4].map((i) => (
@@ -59,10 +80,8 @@ export default function NotificationsPage() {
         </div>
       )}
 
-      {/* Empty */}
       {data && data.items.length === 0 && <EmptyState />}
 
-      {/* Notifications list */}
       {data && data.items.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-rim bg-card">
           {data.items.map((n, idx) => (
@@ -72,9 +91,7 @@ export default function NotificationsPage() {
                 idx < data.items.length - 1 ? 'border-b border-rim' : ''
               }`}
             >
-              {/* Left */}
               <div className="flex min-w-0 items-center gap-3">
-                {/* Channel icon */}
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-elevated text-ink-dim">
                   {CHANNEL_ICONS[n.channel]}
                 </div>
@@ -97,21 +114,32 @@ export default function NotificationsPage() {
                 </div>
               </div>
 
-              {/* Status badge */}
-              <span
-                className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  n.status === 'SENT'
-                    ? 'bg-armed-bg text-emerald-400'
-                    : 'bg-danger-bg text-red-400'
-                }`}
-              >
+              <div className="flex shrink-0 items-center gap-3">
                 <span
-                  className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-                    n.status === 'SENT' ? 'bg-emerald-400' : 'bg-red-400'
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    n.status === 'SENT'
+                      ? 'bg-armed-bg text-emerald-400'
+                      : 'bg-danger-bg text-red-400'
                   }`}
-                />
-                {n.status}
-              </span>
+                >
+                  <span
+                    className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                      n.status === 'SENT' ? 'bg-emerald-400' : 'bg-red-400'
+                    }`}
+                  />
+                  {n.status}
+                </span>
+                <button
+                  onClick={() => del.mutate(n.id)}
+                  disabled={del.isPending}
+                  aria-label="Delete notification"
+                  className="text-ink-dim/50 transition-colors hover:text-red-400 disabled:opacity-50"
+                >
+                  <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+                    <path d="M3 4h10M6.5 4V2.5h3V4M5 4l.5 9h5L11 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
             </div>
           ))}
         </div>
