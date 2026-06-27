@@ -53,7 +53,16 @@ api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
     const original = error.config as AxiosRequestConfig & { _retry?: boolean };
-    if (error.response?.status === 401 && original && !original._retry) {
+    // Auth endpoints own their 401s (bad credentials, expired refresh). Don't
+    // run the refresh-and-redirect dance for them — that reloads the page and
+    // wipes the form's field values and its error before it can be read.
+    const isAuthRequest = original?.url?.startsWith('/auth/') ?? false;
+    if (
+      error.response?.status === 401 &&
+      original &&
+      !original._retry &&
+      !isAuthRequest
+    ) {
       original._retry = true;
       refreshing ??= refreshAccessToken().finally(() => {
         refreshing = null;
