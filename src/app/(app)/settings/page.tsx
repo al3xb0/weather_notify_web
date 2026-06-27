@@ -9,6 +9,41 @@ import {
 import { subscribeToPush } from '@/lib/push';
 import { apiError } from '@/lib/api';
 
+function TelegramIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+      <path
+        d="M17.5 2.5 L7.5 11.25 M17.5 2.5 L12.5 17.5 L7.5 11.25 L2.5 8.75 L17.5 2.5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function PushIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+      <path
+        d="M10 3.5a5 5 0 0 0-5 5v4.7l-1.5 2h13L15 13.2V8.5a5 5 0 0 0-5-5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M8 16.5a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+      <path d="M3 8l3.5 3.5L13 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function SettingsPage() {
   const { data: profile } = useProfile();
   const telegramLink = useTelegramLink();
@@ -16,6 +51,7 @@ export default function SettingsPage() {
 
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [pushMsg, setPushMsg] = useState<string | null>(null);
+  const [pushError, setPushError] = useState(false);
 
   const generateLink = async () => {
     const res = await telegramLink.mutateAsync();
@@ -24,67 +60,117 @@ export default function SettingsPage() {
 
   const enablePush = async () => {
     setPushMsg(null);
+    setPushError(false);
     try {
       const sub = await subscribeToPush();
       await addPush.mutateAsync(sub);
-      setPushMsg('Push notifications enabled on this device ✅');
+      setPushMsg('Push notifications enabled on this device');
     } catch (e) {
       setPushMsg(apiError(e));
+      setPushError(true);
     }
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+      {/* Page header */}
+      <div>
+        <h1 className="font-heading text-2xl font-bold text-ink">Settings</h1>
+        <p className="mt-0.5 text-sm text-ink-dim">Configure notification channels</p>
+      </div>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="mb-2 font-semibold">Telegram</h2>
-        {profile?.telegramLinked ? (
-          <p className="text-sm text-emerald-700">
-            Telegram is linked ✅ (chat {profile.telegramChatId})
-          </p>
-        ) : (
-          <>
-            <p className="mb-3 text-sm text-slate-600">
-              Link your Telegram account to receive alerts in chat.
+      {/* Telegram section */}
+      <section className="overflow-hidden rounded-2xl border border-rim bg-card">
+        <div className="flex items-center gap-3 border-b border-rim px-5 py-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
+            <TelegramIcon />
+          </div>
+          <div>
+            <h2 className="font-heading text-sm font-semibold text-ink">Telegram</h2>
+            <p className="text-xs text-ink-dim">Receive alerts in your Telegram chat</p>
+          </div>
+          {profile?.telegramLinked && (
+            <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-armed-bg px-2.5 py-1 text-xs font-medium text-emerald-400">
+              <CheckIcon />
+              Linked
+            </span>
+          )}
+        </div>
+
+        <div className="px-5 py-4">
+          {profile?.telegramLinked ? (
+            <p className="text-sm text-ink-dim">
+              Chat ID:{' '}
+              <code className="rounded-md bg-elevated px-1.5 py-0.5 font-mono text-xs text-sky-400">
+                {profile.telegramChatId}
+              </code>
             </p>
-            <button
-              onClick={generateLink}
-              disabled={telegramLink.isPending}
-              className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
-            >
-              Generate link
-            </button>
-            {linkUrl && (
-              <p className="mt-3 text-sm">
-                Open this link and press Start:{' '}
-                <a
-                  href={linkUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="break-all text-sky-600 hover:underline"
-                >
-                  {linkUrl}
-                </a>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-ink-dim">
+                Link your Telegram account to receive weather alerts directly in chat.
               </p>
-            )}
-          </>
-        )}
+              <button
+                onClick={generateLink}
+                disabled={telegramLink.isPending}
+                className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition-all hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {telegramLink.isPending ? 'Generating…' : 'Generate link'}
+              </button>
+              {linkUrl && (
+                <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-4">
+                  <p className="mb-2 text-xs font-medium text-sky-400">
+                    Open the link below and press Start in Telegram:
+                  </p>
+                  <a
+                    href={linkUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="break-all text-xs text-sky-300 underline underline-offset-2 hover:text-sky-200"
+                  >
+                    {linkUrl}
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="mb-2 font-semibold">Web Push</h2>
-        <p className="mb-3 text-sm text-slate-600">
-          Enable browser notifications on this device.
-        </p>
-        <button
-          onClick={enablePush}
-          disabled={addPush.isPending}
-          className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
-        >
-          Enable push
-        </button>
-        {pushMsg && <p className="mt-3 text-sm text-slate-700">{pushMsg}</p>}
+      {/* Web Push section */}
+      <section className="overflow-hidden rounded-2xl border border-rim bg-card">
+        <div className="flex items-center gap-3 border-b border-rim px-5 py-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
+            <PushIcon />
+          </div>
+          <div>
+            <h2 className="font-heading text-sm font-semibold text-ink">Web Push</h2>
+            <p className="text-xs text-ink-dim">Browser notifications on this device</p>
+          </div>
+        </div>
+
+        <div className="px-5 py-4 space-y-4">
+          <p className="text-sm text-ink-dim">
+            Enable push notifications in this browser. You&apos;ll be prompted to grant permission.
+          </p>
+          <button
+            onClick={enablePush}
+            disabled={addPush.isPending}
+            className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition-all hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {addPush.isPending ? 'Enabling…' : 'Enable push notifications'}
+          </button>
+          {pushMsg && (
+            <p
+              className={`flex items-center gap-1.5 text-sm ${
+                pushError ? 'text-red-400' : 'text-emerald-400'
+              }`}
+            >
+              {!pushError && <CheckIcon />}
+              {pushMsg}
+            </p>
+          )}
+        </div>
       </section>
     </div>
   );

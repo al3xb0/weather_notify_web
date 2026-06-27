@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
+@theme {
+  /* Font families */
+  --font-heading: var(--font-sora);
+  --font-sans:    var(--font-geist-sans);
+  --font-mono:    var(--font-geist-mono);
+
+  /* Dark surface stack — blue-tinted navy */
+  --color-canvas:      #05080e;
+  --color-base:        #080c18;
+  --color-card:        #0c1522;
+  --color-elevated:    #10192c;
+  --color-overlay:     #162236;
+
+  /* Borders */
+  --color-rim:         #182438;
+  --color-rim-bright:  #1f3050;
+
+  /* Primary text scale */
+  --color-ink:         #dde8f5;
+  --color-ink-dim:     #8a9fba;
+
+  /* Badge / status bg (dark tints) */
+  --color-armed-bg:    #032b1c;
+  --color-fired-bg:    #2d1400;
+  --color-danger-bg:   #2b0808;
+  --color-success-bg:  #032b1c;
+}
+
+/* Pinned to dark — no OS media-query override */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #080c18;
+  color: #dde8f5;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Native elements inherit dark color-scheme */
+input, select, textarea, button {
+  color-scheme: dark;
+}
+
+/* Thin dark scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #182438; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #1f3050; }
+
+/* ── Keyframes ──────────────────────────────────────────── */
+@keyframes radar-pulse {
+  0%   { transform: scale(0.85); opacity: 0.7; }
+  100% { transform: scale(2.6);  opacity: 0;   }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+/* ── Custom utilities ───────────────────────────────────── */
+@layer utilities {
+  /* Radar ring animations for landing hero */
+  .animate-radar {
+    animation: radar-pulse 2.6s ease-out infinite;
+  }
+  .animate-radar-2 {
+    animation: radar-pulse 2.6s ease-out 0.87s infinite;
+  }
+  .animate-radar-3 {
+    animation: radar-pulse 2.6s ease-out 1.74s infinite;
+  }
+
+  /* Staggered page-load fade-ups */
+  .animate-fade-up {
+    animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .delay-75  { animation-delay: 75ms;  }
+  .delay-150 { animation-delay: 150ms; }
+  .delay-225 { animation-delay: 225ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-375 { animation-delay: 375ms; }
+
+  /* Aurora hero gradient */
+  .bg-aurora {
+    background:
+      radial-gradient(ellipse 90% 55% at 50% -8%,  rgba(56, 189, 248, 0.11) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 35% at 88%  12%, rgba(99, 102, 241, 0.07) 0%, transparent 55%),
+      radial-gradient(ellipse 35% 25% at 10%  80%, rgba(14, 165, 233, 0.05) 0%, transparent 55%),
+      #080c18;
+  }
+
+  /* Shimmer gradient text (hero heading) */
+  .text-shimmer {
+    background: linear-gradient(
+      120deg,
+      #7dd3fc 0%,
+      #bfdbfe 35%,
+      #818cf8 65%,
+      #7dd3fc 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
+  }
+
+  /* Left-border status glow on trigger cards */
+  .card-armed   { box-shadow: inset 3px 0 0 #34d399; }
+  .card-fired   { box-shadow: inset 3px 0 0 #fbbf24; }
+  .card-paused  { box-shadow: inset 3px 0 0 #1f3050; }
 }

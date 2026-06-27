@@ -31,14 +31,26 @@ export function CityAutocomplete({
 
   return (
     <div className="relative">
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search a city…"
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-sky-500"
-      />
+      <div className="relative">
+        <svg
+          viewBox="0 0 16 16"
+          fill="none"
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-dim"
+          aria-hidden="true"
+        >
+          <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.3" />
+          <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        </svg>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search a city…"
+          className="w-full rounded-xl border border-rim bg-base py-2.5 pl-9 pr-3.5 text-sm text-ink placeholder-ink-dim/50 outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10"
+        />
+      </div>
+
       {open && (
-        <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+        <ul className="absolute z-20 mt-1.5 max-h-52 w-full overflow-y-auto overscroll-contain rounded-xl border border-rim-bright bg-elevated shadow-2xl shadow-black/50">
           {results.map((r, i) => (
             <li key={`${r.latitude}-${r.longitude}-${i}`}>
               <button
@@ -48,11 +60,11 @@ export function CityAutocomplete({
                   setQuery(r.name);
                   setOpen(false);
                 }}
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+                className="flex w-full items-baseline gap-1.5 px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-overlay"
               >
-                {r.name}
-                <span className="text-slate-500">
-                  {r.admin1 ? `, ${r.admin1}` : ''}, {r.country}
+                <span className="font-medium text-ink">{r.name}</span>
+                <span className="text-xs text-ink-dim">
+                  {r.admin1 ? `${r.admin1}, ` : ''}{r.country}
                 </span>
               </button>
             </li>

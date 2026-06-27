@@ -1,47 +1,117 @@
 'use client';
 
+import React from 'react';
 import { useNotifications } from '@/lib/hooks';
 import { CHANNEL_LABELS } from '@/lib/types';
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rim bg-card/50 py-16 text-center">
+      <svg viewBox="0 0 48 48" fill="none" className="mb-4 h-12 w-12 text-ink-dim/40" aria-hidden="true">
+        <path d="M24 8a10 10 0 0 0-10 10v7.5l-2.5 3.75h25L34 25.5V18A10 10 0 0 0 24 8Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M20 34a4 4 0 0 0 8 0" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
+      <p className="font-heading text-sm font-medium text-ink-dim">No notifications yet</p>
+      <p className="mt-1 text-xs text-ink-dim/60">Alerts will appear here when triggers fire</p>
+    </div>
+  );
+}
+
+const CHANNEL_ICONS: Record<string, React.ReactElement> = {
+  TELEGRAM: (
+    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+      <path d="M14 2 L6 9 M14 2 L10 14 L6 9 L2 7 L14 2Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  ),
+  EMAIL: (
+    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+      <rect x="2" y="4" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M2 4.5l6 5 6-5" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  ),
+  WEB_PUSH: (
+    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+      <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M8 1v1M8 14v1M1 8h1M14 8h1M3.2 3.2l.7.7M12.1 12.1l.7.7M12.1 3.2l-.7.7M3.2 12.1l.7.7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  ),
+};
 
 export default function NotificationsPage() {
   const { data, isLoading } = useNotifications();
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Notifications</h1>
-      {isLoading && <p className="text-slate-500">Loading…</p>}
-      {data && data.items.length === 0 && (
-        <p className="text-slate-500">No notifications yet.</p>
+      {/* Page header */}
+      <div>
+        <h1 className="font-heading text-2xl font-bold text-ink">Notifications</h1>
+        <p className="mt-0.5 text-sm text-ink-dim">
+          {data ? `${data.total} alert${data.total !== 1 ? 's' : ''} logged` : 'Alert history'}
+        </p>
+      </div>
+
+      {/* Loading skeleton */}
+      {isLoading && (
+        <div className="space-y-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-16 animate-pulse rounded-xl border border-rim bg-card/50" />
+          ))}
+        </div>
       )}
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        {data?.items.map((n) => (
-          <div
-            key={n.id}
-            className="flex items-center justify-between border-b border-slate-100 px-4 py-3 last:border-0"
-          >
-            <div>
-              <p className="text-sm font-medium">
-                {CHANNEL_LABELS[n.channel]}
-                {n.error && (
-                  <span className="ml-2 text-xs text-red-500">{n.error}</span>
-                )}
-              </p>
-              <p className="text-xs text-slate-400">
-                {new Date(n.createdAt).toLocaleString()}
-              </p>
-            </div>
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs ${
-                n.status === 'SENT'
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-red-100 text-red-700'
+
+      {/* Empty */}
+      {data && data.items.length === 0 && <EmptyState />}
+
+      {/* Notifications list */}
+      {data && data.items.length > 0 && (
+        <div className="overflow-hidden rounded-2xl border border-rim bg-card">
+          {data.items.map((n, idx) => (
+            <div
+              key={n.id}
+              className={`flex items-center justify-between gap-4 px-4 py-3.5 ${
+                idx < data.items.length - 1 ? 'border-b border-rim' : ''
               }`}
             >
-              {n.status}
-            </span>
-          </div>
-        ))}
-      </div>
+              {/* Left */}
+              <div className="flex min-w-0 items-center gap-3">
+                {/* Channel icon */}
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-elevated text-ink-dim">
+                  {CHANNEL_ICONS[n.channel]}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-ink">
+                    {CHANNEL_LABELS[n.channel]}
+                  </p>
+                  {n.error ? (
+                    <p className="mt-0.5 truncate text-xs text-red-400">{n.error}</p>
+                  ) : (
+                    <p className="mt-0.5 text-xs text-ink-dim">
+                      {new Date(n.createdAt).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Status badge */}
+              <span
+                className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  n.status === 'SENT'
+                    ? 'bg-armed-bg text-emerald-400'
+                    : 'bg-danger-bg text-red-400'
+                }`}
+              >
+                <span
+                  className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                    n.status === 'SENT' ? 'bg-emerald-400' : 'bg-red-400'
+                  }`}
+                />
+                {n.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

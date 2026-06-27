@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
@@ -8,31 +8,91 @@ import { logout } from '@/lib/hooks';
 import { useHydrated } from '@/lib/use-hydrated';
 
 const NAV = [
-  { href: '/dashboard', label: 'Triggers' },
-  { href: '/notifications', label: 'Notifications' },
-  { href: '/settings', label: 'Settings' },
+  {
+    href: '/dashboard',
+    label: 'Triggers',
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+        <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
+    ),
+  },
+  {
+    href: '/notifications',
+    label: 'Notifications',
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+        <path d="M8 2a4 4 0 0 0-4 4v3l-1 1.5h10L12 9V6a4 4 0 0 0-4-4Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M6.5 13a1.5 1.5 0 0 0 3 0" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
+    ),
+  },
+  {
+    href: '/settings',
+    label: 'Settings',
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+        <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2M3.3 3.3l.85.85M11.85 11.85l.85.85M3.3 12.7l.85-.85M11.85 4.15l.85-.85" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      </svg>
+    ),
+  },
 ];
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const router = useRouter();
+function LogoMark() {
+  return (
+    <svg viewBox="0 0 28 28" fill="none" className="h-7 w-7" aria-hidden="true">
+      <path
+        d="M5 20a5 5 0 0 1 4-9.8A6.5 6.5 0 1 1 22 19a4 4 0 0 1 0 3H5a4 4 0 0 1 0-2Z"
+        fill="rgba(56,189,248,0.15)"
+        stroke="#38bdf8"
+        strokeWidth="1.25"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M13 21 l-2.5 5.5 4-2.5 -2 5.5"
+        stroke="#fbbf24"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function HamburgerIcon({ open }: { open: boolean }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+      {open ? (
+        <path d="M4 4l12 12M16 4 L4 16" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      ) : (
+        <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      )}
+    </svg>
+  );
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const router   = useRouter();
   const pathname = usePathname();
   const accessToken = useAuthStore((s) => s.accessToken);
-  const email = useAuthStore((s) => s.email);
-  const hydrated = useHydrated();
+  const email       = useAuthStore((s) => s.email);
+  const hydrated    = useHydrated();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (hydrated && !accessToken) {
-      router.replace('/login');
-    }
+    if (hydrated && !accessToken) router.replace('/login');
   }, [hydrated, accessToken, router]);
 
-  if (!hydrated || !accessToken) {
-    return null;
-  }
+  // Close mobile menu on route change — runs as layout effect to avoid
+  // a visible flash of the open menu before navigation completes
+  useEffect(() => {
+    const id = setTimeout(() => setMenuOpen(false), 0);
+    return () => clearTimeout(id);
+  }, [pathname]);
+
+  if (!hydrated || !accessToken) return null;
 
   const onLogout = async () => {
     await logout();
@@ -40,39 +100,91 @@ export default function AppLayout({
   };
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-6">
-            <span className="font-semibold">🌦️ Weather Notify</span>
-            <nav className="flex gap-4 text-sm">
-              {NAV.map((item) => (
+    <div className="min-h-screen bg-base">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-rim bg-canvas/90 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
+          {/* Logo */}
+          <Link href="/dashboard" className="flex items-center gap-2.5 group">
+            <LogoMark />
+            <span className="font-heading text-sm font-semibold tracking-wide text-ink group-hover:text-sky-300 transition-colors">
+              Weather Notify
+            </span>
+          </Link>
+
+          {/* Desktop nav */}
+          <nav className="hidden sm:flex items-center gap-1">
+            {NAV.map((item) => {
+              const active = pathname === item.href;
+              return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={
-                    pathname === item.href
-                      ? 'font-medium text-sky-600'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                    active
+                      ? 'bg-sky-500/10 text-sky-400'
+                      : 'text-ink-dim hover:bg-elevated hover:text-ink'
+                  }`}
                 >
+                  {item.icon}
                   {item.label}
                 </Link>
-              ))}
-            </nav>
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="hidden text-slate-500 sm:inline">{email}</span>
+              );
+            })}
+          </nav>
+
+          {/* Right side */}
+          <div className="flex items-center gap-2">
+            <span className="hidden text-xs text-ink-dim sm:inline truncate max-w-[160px]">
+              {email}
+            </span>
             <button
               onClick={onLogout}
-              className="rounded-md border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-100"
+              className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
             >
               Log out
             </button>
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="flex items-center justify-center rounded-lg border border-rim p-1.5 text-ink-dim transition-colors hover:bg-elevated hover:text-ink sm:hidden"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            >
+              <HamburgerIcon open={menuOpen} />
+            </button>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {menuOpen && (
+          <div className="border-t border-rim bg-canvas sm:hidden">
+            <nav className="flex flex-col gap-1 px-4 py-3">
+              {NAV.map((item) => {
+                const active = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                      active
+                        ? 'bg-sky-500/10 text-sky-400'
+                        : 'text-ink-dim hover:bg-elevated hover:text-ink'
+                    }`}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </Link>
+                );
+              })}
+              <div className="mt-2 border-t border-rim pt-2 pb-1">
+                <p className="px-3 py-1 text-xs text-ink-dim truncate">{email}</p>
+              </div>
+            </nav>
+          </div>
+        )}
       </header>
-      <main className="mx-auto max-w-4xl px-6 py-8">{children}</main>
+
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">{children}</main>
     </div>
   );
 }
