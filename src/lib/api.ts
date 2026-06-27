@@ -8,7 +8,7 @@ import type { Tokens } from '@/lib/types';
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
-export const api = axios.create({ baseURL });
+export const api = axios.create({ baseURL, timeout: 15_000 });
 
 /** Extract a human-readable message from an axios/API error. */
 export function apiError(error: unknown): string {
