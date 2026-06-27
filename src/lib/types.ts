@@ -54,9 +54,8 @@ export interface Paginated<T> {
   limit: number;
 }
 
-export interface Tokens {
+export interface AuthResponse {
   accessToken: string;
-  refreshToken: string;
 }
 
 export interface Profile {

@@ -4,11 +4,12 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import { useAuthStore } from '@/store/auth';
-import type { Tokens } from '@/lib/types';
+import type { AuthResponse } from '@/lib/types';
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
-export const api = axios.create({ baseURL, timeout: 15_000 });
+// withCredentials so the httpOnly refresh cookie rides along on /auth requests.
+export const api = axios.create({ baseURL, timeout: 15_000, withCredentials: true });
 
 /** Extract a human-readable message from an axios/API error. */
 export function apiError(error: unknown): string {
@@ -33,15 +34,14 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 let refreshing: Promise<string | null> | null = null;
 
 async function refreshAccessToken(): Promise<string | null> {
-  const { refreshToken, setTokens, clear } = useAuthStore.getState();
-  if (!refreshToken) {
-    return null;
-  }
+  const { setAccessToken, clear } = useAuthStore.getState();
   try {
-    const { data } = await axios.post<Tokens>(`${baseURL}/auth/refresh`, {
-      refreshToken,
-    });
-    setTokens(data);
+    const { data } = await axios.post<AuthResponse>(
+      `${baseURL}/auth/refresh`,
+      {},
+      { withCredentials: true },
+    );
+    setAccessToken(data.accessToken);
     return data.accessToken;
   } catch {
     clear();

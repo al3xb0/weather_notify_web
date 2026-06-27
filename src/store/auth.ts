@@ -2,13 +2,13 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Tokens } from '@/lib/types';
 
+// Only the short-lived access token is persisted. The refresh token lives in an
+// httpOnly cookie set by the API, so it is never exposed to JS (XSS-resistant).
 interface AuthState {
   accessToken: string | null;
-  refreshToken: string | null;
   email: string | null;
-  setTokens: (tokens: Tokens) => void;
+  setAccessToken: (token: string | null) => void;
   setEmail: (email: string | null) => void;
   clear: () => void;
 }
@@ -17,15 +17,10 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       accessToken: null,
-      refreshToken: null,
       email: null,
-      setTokens: (tokens) =>
-        set({
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-        }),
+      setAccessToken: (accessToken) => set({ accessToken }),
       setEmail: (email) => set({ email }),
-      clear: () => set({ accessToken: null, refreshToken: null, email: null }),
+      clear: () => set({ accessToken: null, email: null }),
     }),
     { name: 'wn-auth' },
   ),

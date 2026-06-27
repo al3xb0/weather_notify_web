@@ -8,13 +8,13 @@ import {
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import type {
+  AuthResponse,
   Channel,
   Metric,
   NotificationItem,
   Operator,
   Paginated,
   Profile,
-  Tokens,
   Trigger,
 } from '@/lib/types';
 
@@ -33,23 +33,27 @@ export interface TriggerInput {
 
 // ── Auth ────────────────────────────────────────────────
 export async function register(email: string, password: string) {
-  const { data } = await api.post<Tokens>('/auth/register', { email, password });
-  useAuthStore.getState().setTokens(data);
+  const { data } = await api.post<AuthResponse>('/auth/register', {
+    email,
+    password,
+  });
+  useAuthStore.getState().setAccessToken(data.accessToken);
   useAuthStore.getState().setEmail(email);
 }
 
 export async function login(email: string, password: string) {
-  const { data } = await api.post<Tokens>('/auth/login', { email, password });
-  useAuthStore.getState().setTokens(data);
+  const { data } = await api.post<AuthResponse>('/auth/login', {
+    email,
+    password,
+  });
+  useAuthStore.getState().setAccessToken(data.accessToken);
   useAuthStore.getState().setEmail(email);
 }
 
 export async function logout() {
-  const { refreshToken, clear } = useAuthStore.getState();
-  if (refreshToken) {
-    await api.post('/auth/logout', { refreshToken }).catch(() => undefined);
-  }
-  clear();
+  // Refresh cookie is sent automatically; the server clears it.
+  await api.post('/auth/logout').catch(() => undefined);
+  useAuthStore.getState().clear();
 }
 
 // ── Triggers ────────────────────────────────────────────
