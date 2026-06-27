@@ -12,8 +12,9 @@ export function CityAutocomplete({
 }) {
   const [query, setQuery] = useState(initial ?? '');
   const [results, setResults] = useState<GeoResult[]>([]);
-  const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
   const skip = useRef(true);
+  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (skip.current) {
@@ -21,13 +22,13 @@ export function CityAutocomplete({
       return;
     }
     const handle = setTimeout(() => {
-      void searchCities(query).then((r) => {
-        setResults(r);
-        setOpen(r.length > 0);
-      });
+      void searchCities(query).then(setResults);
     }, 300);
     return () => clearTimeout(handle);
   }, [query]);
+
+  // Suggestions are shown only while the field is focused.
+  const open = focused && results.length > 0;
 
   return (
     <div className="relative">
@@ -44,6 +45,14 @@ export function CityAutocomplete({
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => {
+            if (blurTimer.current) clearTimeout(blurTimer.current);
+            setFocused(true);
+          }}
+          onBlur={() => {
+            // Delay so a click on a suggestion still registers.
+            blurTimer.current = setTimeout(() => setFocused(false), 120);
+          }}
           placeholder="Search a city…"
           className="w-full rounded-xl border border-rim bg-base py-2.5 pl-9 pr-3.5 text-sm text-ink placeholder-ink-dim/50 outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10"
         />
@@ -58,7 +67,8 @@ export function CityAutocomplete({
                 onClick={() => {
                   onSelect(r);
                   setQuery(r.name);
-                  setOpen(false);
+                  setResults([]);
+                  setFocused(false);
                 }}
                 className="flex w-full items-baseline gap-1.5 px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-overlay"
               >
