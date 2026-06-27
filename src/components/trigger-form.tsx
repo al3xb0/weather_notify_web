@@ -121,7 +121,6 @@ export function TriggerForm({
       </div>
 
       <div className="space-y-5">
-        {/* Name */}
         <div>
           <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
             Name
@@ -134,7 +133,6 @@ export function TriggerForm({
           />
         </div>
 
-        {/* City */}
         <div>
           <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
             City
@@ -158,7 +156,6 @@ export function TriggerForm({
           )}
         </div>
 
-        {/* Metric / Operator / Threshold */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
             <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
@@ -214,7 +211,6 @@ export function TriggerForm({
           )}
         </div>
 
-        {/* Channels — pill toggles */}
         <div>
           <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-ink-dim">
             Channels
@@ -249,7 +245,6 @@ export function TriggerForm({
           </div>
         </div>
 
-        {/* Cooldown */}
         <div>
           <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
             Cooldown (minutes)
@@ -257,7 +252,7 @@ export function TriggerForm({
           <div className="flex items-center gap-2">
             <input
               type="number"
-              min={1}
+              min={5}
               value={cooldownMin}
               onChange={(e) => setCooldownMin(Number(e.target.value))}
               className="w-28 rounded-xl border border-rim bg-base px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10"
@@ -268,14 +263,12 @@ export function TriggerForm({
           </div>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="rounded-xl border border-red-500/20 bg-danger-bg px-4 py-3 text-sm text-red-400">
             {error}
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex gap-2 pt-1">
           <button
             type="submit"

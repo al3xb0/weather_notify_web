@@ -53,20 +53,23 @@ export default function DashboardPage() {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Trigger | null>(null);
 
+  const atLimit = !!data && data.items.length >= 20;
+
   return (
     <div className="space-y-6">
-      {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-ink">Triggers</h1>
           <p className="mt-0.5 text-sm text-ink-dim">
-            {data ? `${data.items.length} active monitor${data.items.length !== 1 ? 's' : ''}` : 'Weather monitors'}
+            {data ? `${data.items.length} of 20 monitor${data.items.length !== 1 ? 's' : ''}` : 'Weather monitors'}
           </p>
         </div>
         {!creating && !editing && (
           <button
             onClick={() => setCreating(true)}
-            className="flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 hover:shadow-sky-400/25 active:scale-95"
+            disabled={atLimit}
+            title={atLimit ? 'Trigger limit reached (max 20)' : undefined}
+            className="flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 hover:shadow-sky-400/25 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:bg-sky-500"
           >
             <PlusIcon />
             New trigger
@@ -74,16 +77,13 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Forms */}
       {creating && <TriggerForm onDone={() => setCreating(false)} />}
       {editing && <TriggerForm initial={editing} onDone={() => setEditing(null)} />}
 
-      {/* States */}
       {isLoading && <LoadingState />}
 
       {data && data.items.length === 0 && !creating && <EmptyState />}
 
-      {/* Trigger cards */}
       <div className="space-y-3">
         {data?.items.map((t) => {
           const glowClass = !t.isActive
@@ -97,15 +97,12 @@ export default function DashboardPage() {
               key={t.id}
               className={`flex items-start justify-between gap-4 rounded-2xl border border-rim bg-card p-4 transition-shadow hover:shadow-lg hover:shadow-black/30 ${glowClass}`}
             >
-              {/* Left content */}
               <div className="min-w-0 space-y-1.5">
-                {/* Name + badges row */}
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-heading text-sm font-semibold text-ink">
                     {t.name}
                   </span>
 
-                  {/* State badge */}
                   <span
                     className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                       t.state === 'FIRED'
@@ -128,14 +125,12 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                {/* Condition */}
                 <p className="text-sm text-ink-dim">
                   <span className="text-sky-400">{t.city}</span>
                   <span className="mx-1.5 text-ink-dim/40">·</span>
                   {conditionText(t)}
                 </p>
 
-                {/* Meta */}
                 <p className="text-xs text-ink-dim/60">
                   {t.channels.map((c) => CHANNEL_LABELS[c]).join(', ')}
                   <span className="mx-1.5">·</span>
@@ -149,7 +144,6 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              {/* Actions */}
               <div className="flex shrink-0 gap-2">
                 <button
                   onClick={() => { setCreating(false); setEditing(t); }}
