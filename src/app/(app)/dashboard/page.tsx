@@ -52,6 +52,7 @@ export default function DashboardPage() {
   const del = useDeleteTrigger();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Trigger | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const atLimit = !!data && data.items.length >= 20;
 
@@ -145,19 +146,41 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex shrink-0 gap-2">
-                <button
-                  onClick={() => { setCreating(false); setEditing(t); }}
-                  className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => del.mutate(t.id)}
-                  disabled={del.isPending}
-                  className="rounded-lg border border-danger-bg px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-danger-bg hover:border-red-500/30 disabled:opacity-50"
-                >
-                  Delete
-                </button>
+                {confirmId === t.id ? (
+                  <>
+                    <button
+                      onClick={() =>
+                        del.mutate(t.id, { onSettled: () => setConfirmId(null) })
+                      }
+                      disabled={del.isPending}
+                      className="rounded-lg border border-red-500/30 bg-danger-bg px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      onClick={() => setConfirmId(null)}
+                      disabled={del.isPending}
+                      className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => { setCreating(false); setEditing(t); }}
+                      className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setConfirmId(t.id)}
+                      className="rounded-lg border border-danger-bg px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-danger-bg hover:border-red-500/30"
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           );
