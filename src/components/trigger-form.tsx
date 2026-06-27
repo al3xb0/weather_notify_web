@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { TriggerInput, useCreateTrigger, useUpdateTrigger } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
@@ -14,9 +17,24 @@ import {
   Trigger,
 } from '@/lib/types';
 
-const METRICS  = Object.keys(METRIC_LABELS)   as Metric[];
-const OPERATORS = Object.keys(OPERATOR_LABELS) as Operator[];
-const CHANNELS  = Object.keys(CHANNEL_LABELS)  as Channel[];
+const METRICS = Object.keys(METRIC_LABELS) as [Metric, ...Metric[]];
+const OPERATORS = Object.keys(OPERATOR_LABELS) as [Operator, ...Operator[]];
+const CHANNELS = Object.keys(CHANNEL_LABELS) as [Channel, ...Channel[]];
+
+const schema = z.object({
+  name: z.string().trim().min(1, 'Name is required'),
+  city: z.string().min(1, 'Pick a city from the list'),
+  latitude: z.number({ error: 'Pick a city from the list' }),
+  longitude: z.number({ error: 'Pick a city from the list' }),
+  metric: z.enum(METRICS),
+  operator: z.enum(OPERATORS),
+  threshold: z.number({ error: 'Enter a number' }),
+  channels: z.array(z.enum(CHANNELS)).min(1, 'Select at least one channel'),
+  cooldownMin: z
+    .number({ error: 'Enter a number' })
+    .min(5, 'Minimum cooldown is 5 minutes'),
+});
+type FormData = z.infer<typeof schema>;
 
 function SelectWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -42,44 +60,46 @@ export function TriggerForm({
   const update = useUpdateTrigger();
   const [error, setError] = useState<string | null>(null);
 
-  const [name, setName]           = useState(initial?.name ?? '');
-  const [city, setCity]           = useState(initial?.city ?? '');
-  const [lat, setLat]             = useState<number | null>(initial?.latitude ?? null);
-  const [lon, setLon]             = useState<number | null>(initial?.longitude ?? null);
-  const [metric, setMetric]       = useState<Metric>(initial?.metric ?? 'TEMPERATURE');
-  const [operator, setOperator]   = useState<Operator>(initial?.operator ?? 'GT');
-  const [threshold, setThreshold] = useState<number>(initial?.threshold ?? 30);
-  const [channels, setChannels]   = useState<Channel[]>(initial?.channels ?? ['TELEGRAM']);
-  const [cooldownMin, setCooldownMin] = useState<number>(initial?.cooldownMin ?? 60);
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: initial?.name ?? '',
+      city: initial?.city ?? '',
+      latitude: initial?.latitude,
+      longitude: initial?.longitude,
+      metric: initial?.metric ?? 'TEMPERATURE',
+      operator: initial?.operator ?? 'GT',
+      threshold: initial?.threshold ?? 30,
+      channels: initial?.channels ?? ['TELEGRAM'],
+      cooldownMin: initial?.cooldownMin ?? 60,
+    },
+  });
 
+  const metric = useWatch({ control, name: 'metric' });
+  const city = useWatch({ control, name: 'city' });
+  const latitude = useWatch({ control, name: 'latitude' });
+  const longitude = useWatch({ control, name: 'longitude' });
+  const channels = useWatch({ control, name: 'channels' }) ?? [];
   const isSevere = metric === 'SEVERE';
 
-  const toggleChannel = (c: Channel) =>
-    setChannels((prev) =>
-      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
-    );
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = handleSubmit(async (data) => {
     setError(null);
-    if (!name.trim() || !city.trim() || lat === null || lon === null) {
-      setError('Please provide a name and pick a city from the list.');
-      return;
-    }
-    if (channels.length === 0) {
-      setError('Select at least one channel.');
-      return;
-    }
     const input: TriggerInput = {
-      name,
-      city,
-      latitude: lat,
-      longitude: lon,
-      metric,
-      operator: isSevere ? 'EQ' : operator,
-      threshold: isSevere ? 0 : threshold,
-      channels,
-      cooldownMin,
+      name: data.name,
+      city: data.city,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      metric: data.metric,
+      operator: isSevere ? 'EQ' : data.operator,
+      threshold: isSevere ? 0 : data.threshold,
+      channels: data.channels,
+      cooldownMin: data.cooldownMin,
     };
     try {
       if (initial) {
@@ -91,7 +111,7 @@ export function TriggerForm({
     } catch (err) {
       setError(apiError(err));
     }
-  };
+  });
 
   const selectClass =
     'w-full appearance-none rounded-xl border border-rim bg-base py-2.5 pl-3.5 pr-8 text-sm text-ink outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10';
@@ -101,7 +121,7 @@ export function TriggerForm({
 
   return (
     <form
-      onSubmit={submit}
+      onSubmit={onSubmit}
       className="rounded-2xl border border-rim-bright bg-card p-6 shadow-xl shadow-black/30"
     >
       <div className="mb-5 flex items-center justify-between">
@@ -126,11 +146,13 @@ export function TriggerForm({
             Name
           </label>
           <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            {...register('name')}
             placeholder="e.g. Berlin heat wave"
             className={inputClass}
           />
+          {errors.name && (
+            <p className="mt-1.5 text-xs text-red-400">{errors.name.message}</p>
+          )}
         </div>
 
         <div>
@@ -140,18 +162,23 @@ export function TriggerForm({
           <CityAutocomplete
             initial={city}
             onSelect={(g) => {
-              setCity(g.name);
-              setLat(g.latitude);
-              setLon(g.longitude);
+              setValue('city', g.name, { shouldValidate: true });
+              setValue('latitude', g.latitude, { shouldValidate: true });
+              setValue('longitude', g.longitude, { shouldValidate: true });
             }}
           />
-          {lat !== null && (
+          {latitude !== undefined && longitude !== undefined && (
             <p className="mt-1.5 text-xs text-ink-dim">
               <span className="text-sky-400">{city}</span>
               {' '}
               <span className="text-ink-dim/50">
-                ({lat.toFixed(2)}, {lon?.toFixed(2)})
+                ({latitude.toFixed(2)}, {longitude.toFixed(2)})
               </span>
+            </p>
+          )}
+          {(errors.city || errors.latitude) && (
+            <p className="mt-1.5 text-xs text-red-400">
+              {errors.city?.message ?? errors.latitude?.message}
             </p>
           )}
         </div>
@@ -162,11 +189,7 @@ export function TriggerForm({
               Metric
             </label>
             <SelectWrapper>
-              <select
-                value={metric}
-                onChange={(e) => setMetric(e.target.value as Metric)}
-                className={selectClass}
-              >
+              <select {...register('metric')} className={selectClass}>
                 {METRICS.map((m) => (
                   <option key={m} value={m}>
                     {METRIC_LABELS[m]}
@@ -183,11 +206,7 @@ export function TriggerForm({
                   Operator
                 </label>
                 <SelectWrapper>
-                  <select
-                    value={operator}
-                    onChange={(e) => setOperator(e.target.value as Operator)}
-                    className={selectClass}
-                  >
+                  <select {...register('operator')} className={selectClass}>
                     {OPERATORS.map((o) => (
                       <option key={o} value={o}>
                         {OPERATOR_LABELS[o]}
@@ -202,10 +221,15 @@ export function TriggerForm({
                 </label>
                 <input
                   type="number"
-                  value={threshold}
-                  onChange={(e) => setThreshold(Number(e.target.value))}
+                  step="any"
+                  {...register('threshold', { valueAsNumber: true })}
                   className={inputClass}
                 />
+                {errors.threshold && (
+                  <p className="mt-1.5 text-xs text-red-400">
+                    {errors.threshold.message}
+                  </p>
+                )}
               </div>
             </>
           )}
@@ -229,8 +253,8 @@ export function TriggerForm({
                 >
                   <input
                     type="checkbox"
-                    checked={active}
-                    onChange={() => toggleChannel(c)}
+                    value={c}
+                    {...register('channels')}
                     className="sr-only"
                   />
                   {active && (
@@ -243,6 +267,11 @@ export function TriggerForm({
               );
             })}
           </div>
+          {errors.channels && (
+            <p className="mt-1.5 text-xs text-red-400">
+              {errors.channels.message}
+            </p>
+          )}
         </div>
 
         <div>
@@ -253,14 +282,18 @@ export function TriggerForm({
             <input
               type="number"
               min={5}
-              value={cooldownMin}
-              onChange={(e) => setCooldownMin(Number(e.target.value))}
+              {...register('cooldownMin', { valueAsNumber: true })}
               className="w-28 rounded-xl border border-rim bg-base px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10"
             />
             <span className="text-xs text-ink-dim">
               min between repeated alerts
             </span>
           </div>
+          {errors.cooldownMin && (
+            <p className="mt-1.5 text-xs text-red-400">
+              {errors.cooldownMin.message}
+            </p>
+          )}
         </div>
 
         {error && (
@@ -272,7 +305,7 @@ export function TriggerForm({
         <div className="flex gap-2 pt-1">
           <button
             type="submit"
-            disabled={create.isPending || update.isPending}
+            disabled={isSubmitting}
             className="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition-all hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {initial ? 'Save changes' : 'Create trigger'}
