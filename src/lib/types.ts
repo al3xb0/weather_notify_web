@@ -28,6 +28,15 @@ export interface Trigger {
   createdAt: string;
 }
 
+export interface NotificationPayload {
+  triggerName?: string;
+  city?: string;
+  metric?: Metric;
+  operator?: Operator;
+  threshold?: number;
+  observedValue?: number;
+}
+
 export interface NotificationItem {
   id: string;
   triggerId: string;
@@ -35,7 +44,7 @@ export interface NotificationItem {
   status: NotifStatus;
   error: string | null;
   createdAt: string;
-  payload: Record<string, unknown>;
+  payload: NotificationPayload;
 }
 
 export interface Paginated<T> {

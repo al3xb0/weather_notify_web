@@ -80,15 +80,19 @@ export default function NotificationsPage() {
                 </div>
 
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-ink">
-                    {CHANNEL_LABELS[n.channel]}
+                  <p className="truncate text-sm font-medium text-ink">
+                    {n.payload?.triggerName ?? 'Trigger'}
+                    {n.payload?.city && (
+                      <span className="font-normal text-ink-dim"> · {n.payload.city}</span>
+                    )}
                   </p>
-                  {n.error ? (
+                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-dim">
+                    <span>{CHANNEL_LABELS[n.channel]}</span>
+                    <span className="text-ink-dim/40">•</span>
+                    <span>{new Date(n.createdAt).toLocaleString()}</span>
+                  </p>
+                  {n.error && (
                     <p className="mt-0.5 truncate text-xs text-red-400">{n.error}</p>
-                  ) : (
-                    <p className="mt-0.5 text-xs text-ink-dim">
-                      {new Date(n.createdAt).toLocaleString()}
-                    </p>
                   )}
                 </div>
               </div>
