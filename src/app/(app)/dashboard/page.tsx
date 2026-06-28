@@ -10,6 +10,7 @@ import {
 } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
 import { TriggerForm } from '@/components/trigger-form';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import {
   METRIC_LABELS,
   METRIC_UNITS,
@@ -125,7 +126,7 @@ function ActiveToggle({
     >
       <span
         className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
-          active ? 'translate-x-[18px]' : 'translate-x-0.5'
+          active ? 'translate-x-4.5' : 'translate-x-0.5'
         }`}
       />
     </button>
@@ -141,6 +142,7 @@ export default function DashboardPage() {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Trigger | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
   const [testMsg, setTestMsg] = useState<{
     id: string;
     text: string;
@@ -183,11 +185,7 @@ export default function DashboardPage() {
   const atLimit = !!data && data.items.length >= 20;
 
   const handleClearAll = () => {
-    if (
-      window.confirm('Delete all triggers? This cannot be undone.')
-    ) {
-      clearAll.mutate();
-    }
+    clearAll.mutate(undefined, { onSettled: () => setConfirmClear(false) });
   };
 
   return (
@@ -203,7 +201,7 @@ export default function DashboardPage() {
           <div className="flex shrink-0 items-center gap-2">
             {!!data && data.items.length > 0 && (
               <button
-                onClick={handleClearAll}
+                onClick={() => setConfirmClear(true)}
                 disabled={clearAll.isPending}
                 className="rounded-xl border border-danger-bg px-3.5 py-2 text-xs font-medium text-red-400 transition-colors hover:border-red-500/30 hover:bg-danger-bg disabled:opacity-50"
               >
@@ -379,6 +377,17 @@ export default function DashboardPage() {
           );
         })}
       </div>
+
+      <ConfirmDialog
+        open={confirmClear}
+        title="Delete all triggers?"
+        message="This permanently removes every trigger you've created. This action cannot be undone."
+        confirmLabel="Delete all"
+        danger
+        pending={clearAll.isPending}
+        onConfirm={handleClearAll}
+        onCancel={() => setConfirmClear(false)}
+      />
     </div>
   );
 }
