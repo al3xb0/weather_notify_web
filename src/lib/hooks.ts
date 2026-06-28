@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/auth';
 import type {
   AuthResponse,
   Channel,
+  ConditionLogic,
   Metric,
   NotificationItem,
   Operator,
@@ -18,14 +19,19 @@ import type {
   Trigger,
 } from '@/lib/types';
 
+export interface ConditionInput {
+  metric: Metric;
+  operator: Operator;
+  threshold: number;
+}
+
 export interface TriggerInput {
   name: string;
   city: string;
   latitude: number;
   longitude: number;
-  metric: Metric;
-  operator: Operator;
-  threshold: number;
+  conditions: ConditionInput[];
+  conditionLogic?: ConditionLogic;
   channels: Channel[];
   cooldownMin: number;
   isActive?: boolean;

@@ -15,32 +15,43 @@ import {
   OPERATOR_LABELS,
   CHANNEL_LABELS,
   Trigger,
+  TriggerCondition,
 } from '@/lib/types';
 
-function conditionText(t: Trigger): string {
-  if (t.metric === 'SEVERE') return 'Severe weather detected';
-  return `${METRIC_LABELS[t.metric]} ${OPERATOR_LABELS[t.operator]} ${t.threshold}`;
+function conditionLabel(c: TriggerCondition): string {
+  if (c.metric === 'SEVERE') return 'Severe weather';
+  return `${METRIC_LABELS[c.metric]} ${OPERATOR_LABELS[c.operator]} ${c.threshold}`;
 }
 
-function formatObserved(t: Trigger): string | null {
-  if (t.lastObservedValue == null) return null;
-  if (t.metric === 'SEVERE') return `code ${t.lastObservedValue}`;
-  const v = Math.round(t.lastObservedValue * 10) / 10;
-  return `${v}${METRIC_UNITS[t.metric]}`;
+function conditionText(t: Trigger): string {
+  const joiner = t.conditionLogic === 'OR' ? ' or ' : ' and ';
+  return t.conditions.map(conditionLabel).join(joiner);
+}
+
+function shortMetric(metric: TriggerCondition['metric']): string {
+  return METRIC_LABELS[metric].split(' ')[0];
+}
+
+function formatObserved(c: TriggerCondition): string | null {
+  if (c.lastObservedValue == null) return null;
+  if (c.metric === 'SEVERE') return `code ${c.lastObservedValue}`;
+  const v = Math.round(c.lastObservedValue * 10) / 10;
+  return `${v}${METRIC_UNITS[c.metric]}`;
+}
+
+function overallMatched(t: Trigger): boolean | null {
+  const flags = t.conditions.map((c) => c.lastMatched);
+  if (flags.some((f) => f == null)) return null;
+  return t.conditionLogic === 'OR' ? flags.some(Boolean) : flags.every(Boolean);
 }
 
 // Client-side explanation of why a trigger is or isn't firing, derived purely
-// from the latest observation the watcher recorded.
+// from the latest observations the watcher recorded.
 function statusReason(t: Trigger): string | null {
-  if (!t.isActive || t.lastEvaluatedAt == null || t.lastObservedValue == null) {
-    return null;
-  }
-  if (t.metric === 'SEVERE') {
-    return t.lastMatched ? 'severe weather active' : 'no severe weather';
-  }
-  if (t.lastMatched === false) {
-    return `need ${OPERATOR_LABELS[t.operator]} ${t.threshold} — not reached`;
-  }
+  if (!t.isActive || t.lastEvaluatedAt == null) return null;
+  const matched = overallMatched(t);
+  if (matched == null) return null;
+  if (!matched) return 'conditions not met';
   if (t.state === 'FIRED' && t.lastFiredAt) {
     const next = new Date(
       new Date(t.lastFiredAt).getTime() + t.cooldownMin * 60_000,
@@ -50,10 +61,10 @@ function statusReason(t: Trigger): string | null {
         hour: '2-digit',
         minute: '2-digit',
       });
-      return `condition met · cooldown until ${hhmm}`;
+      return `conditions met · cooldown until ${hhmm}`;
     }
   }
-  return 'condition met';
+  return 'conditions met';
 }
 
 function PlusIcon() {
@@ -230,11 +241,18 @@ export default function DashboardPage() {
                   {conditionText(t)}
                 </p>
 
-                {formatObserved(t) && (
+                {t.conditions.some((c) => c.lastObservedValue != null) && (
                   <p className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="inline-flex items-center rounded-full bg-elevated px-2 py-0.5 font-medium text-sky-300">
-                      Now: {formatObserved(t)}
-                    </span>
+                    {t.conditions.map((c) =>
+                      formatObserved(c) ? (
+                        <span
+                          key={c.id}
+                          className="inline-flex items-center rounded-full bg-elevated px-2 py-0.5 font-medium text-sky-300"
+                        >
+                          {shortMetric(c.metric)}: {formatObserved(c)}
+                        </span>
+                      ) : null,
+                    )}
                     {statusReason(t) && (
                       <span className="text-ink-dim/60">{statusReason(t)}</span>
                     )}

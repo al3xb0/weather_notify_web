@@ -10,6 +10,17 @@ export type Operator = 'GT' | 'GTE' | 'LT' | 'LTE' | 'EQ';
 export type Channel = 'TELEGRAM' | 'EMAIL' | 'WEB_PUSH';
 export type TriggerState = 'ARMED' | 'FIRED';
 export type NotifStatus = 'SENT' | 'FAILED';
+export type ConditionLogic = 'AND' | 'OR';
+
+export interface TriggerCondition {
+  id: string;
+  metric: Metric;
+  operator: Operator;
+  threshold: number;
+  order: number;
+  lastObservedValue: number | null;
+  lastMatched: boolean | null;
+}
 
 export interface Trigger {
   id: string;
@@ -17,17 +28,14 @@ export interface Trigger {
   city: string;
   latitude: number;
   longitude: number;
-  metric: Metric;
-  operator: Operator;
-  threshold: number;
+  conditions: TriggerCondition[];
+  conditionLogic: ConditionLogic;
   channels: Channel[];
   cooldownMin: number;
   isActive: boolean;
   state: TriggerState;
   lastFiredAt: string | null;
-  lastObservedValue: number | null;
   lastEvaluatedAt: string | null;
-  lastMatched: boolean | null;
   createdAt: string;
 }
 

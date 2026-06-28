@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CityAutocomplete } from '@/components/city-autocomplete';
@@ -21,14 +21,24 @@ const METRICS = Object.keys(METRIC_LABELS) as [Metric, ...Metric[]];
 const OPERATORS = Object.keys(OPERATOR_LABELS) as [Operator, ...Operator[]];
 const CHANNELS = Object.keys(CHANNEL_LABELS) as [Channel, ...Channel[]];
 
+const MAX_CONDITIONS = 5;
+
+const conditionSchema = z.object({
+  metric: z.enum(METRICS),
+  operator: z.enum(OPERATORS),
+  threshold: z.number({ error: 'Enter a number' }),
+});
+
 const schema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
   city: z.string().min(1, 'Pick a city from the list'),
   latitude: z.number({ error: 'Pick a city from the list' }),
   longitude: z.number({ error: 'Pick a city from the list' }),
-  metric: z.enum(METRICS),
-  operator: z.enum(OPERATORS),
-  threshold: z.number({ error: 'Enter a number' }),
+  conditions: z
+    .array(conditionSchema)
+    .min(1, 'Add at least one condition')
+    .max(MAX_CONDITIONS, `Up to ${MAX_CONDITIONS} conditions`),
+  conditionLogic: z.enum(['AND', 'OR']),
   channels: z.array(z.enum(CHANNELS)).min(1, 'Select at least one channel'),
   cooldownMin: z
     .number({ error: 'Enter a number' })
@@ -73,20 +83,27 @@ export function TriggerForm({
       city: initial?.city ?? '',
       latitude: initial?.latitude,
       longitude: initial?.longitude,
-      metric: initial?.metric ?? 'TEMPERATURE',
-      operator: initial?.operator ?? 'GT',
-      threshold: initial?.threshold ?? 30,
+      conditions: initial?.conditions?.map((c) => ({
+        metric: c.metric,
+        operator: c.operator,
+        threshold: c.threshold,
+      })) ?? [{ metric: 'TEMPERATURE', operator: 'GT', threshold: 30 }],
+      conditionLogic: initial?.conditionLogic ?? 'AND',
       channels: initial?.channels ?? ['TELEGRAM'],
       cooldownMin: initial?.cooldownMin ?? 60,
     },
   });
 
-  const metric = useWatch({ control, name: 'metric' });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'conditions',
+  });
   const city = useWatch({ control, name: 'city' });
   const latitude = useWatch({ control, name: 'latitude' });
   const longitude = useWatch({ control, name: 'longitude' });
   const channels = useWatch({ control, name: 'channels' }) ?? [];
-  const isSevere = metric === 'SEVERE';
+  const watchedConditions = useWatch({ control, name: 'conditions' });
+  const logic = useWatch({ control, name: 'conditionLogic' });
 
   const onSubmit = handleSubmit(async (data) => {
     setError(null);
@@ -95,9 +112,12 @@ export function TriggerForm({
       city: data.city,
       latitude: data.latitude,
       longitude: data.longitude,
-      metric: data.metric,
-      operator: isSevere ? 'EQ' : data.operator,
-      threshold: isSevere ? 0 : data.threshold,
+      conditions: data.conditions.map((c) =>
+        c.metric === 'SEVERE'
+          ? { metric: 'SEVERE' as const, operator: 'EQ' as const, threshold: 0 }
+          : c,
+      ),
+      conditionLogic: data.conditions.length > 1 ? data.conditionLogic : 'AND',
       channels: data.channels,
       cooldownMin: data.cooldownMin,
     };
@@ -183,55 +203,115 @@ export function TriggerForm({
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div>
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
-              Metric
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="block text-xs font-medium uppercase tracking-wider text-ink-dim">
+              Conditions
             </label>
-            <SelectWrapper>
-              <select {...register('metric')} className={selectClass}>
-                {METRICS.map((m) => (
-                  <option key={m} value={m}>
-                    {METRIC_LABELS[m]}
-                  </option>
+            {fields.length > 1 && (
+              <div className="flex items-center gap-1 rounded-lg border border-rim p-0.5 text-xs font-semibold">
+                {(['AND', 'OR'] as const).map((l) => (
+                  <label
+                    key={l}
+                    className={`cursor-pointer rounded-md px-2.5 py-1 transition-colors ${
+                      logic === l
+                        ? 'bg-sky-500/15 text-sky-300'
+                        : 'text-ink-dim hover:text-ink'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      value={l}
+                      {...register('conditionLogic')}
+                      className="sr-only"
+                    />
+                    {l}
+                  </label>
                 ))}
-              </select>
-            </SelectWrapper>
+              </div>
+            )}
           </div>
 
-          {!isSevere && (
-            <>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
-                  Operator
-                </label>
-                <SelectWrapper>
-                  <select {...register('operator')} className={selectClass}>
-                    {OPERATORS.map((o) => (
-                      <option key={o} value={o}>
-                        {OPERATOR_LABELS[o]}
-                      </option>
-                    ))}
-                  </select>
-                </SelectWrapper>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
-                  Threshold
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  {...register('threshold', { valueAsNumber: true })}
-                  className={inputClass}
-                />
-                {errors.threshold && (
-                  <p className="mt-1.5 text-xs text-red-400">
-                    {errors.threshold.message}
-                  </p>
-                )}
-              </div>
-            </>
+          <div className="space-y-2">
+            {fields.map((field, i) => {
+              const severe = watchedConditions?.[i]?.metric === 'SEVERE';
+              return (
+                <div key={field.id} className="flex items-start gap-2">
+                  <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
+                    <SelectWrapper>
+                      <select
+                        {...register(`conditions.${i}.metric` as const)}
+                        className={selectClass}
+                      >
+                        {METRICS.map((m) => (
+                          <option key={m} value={m}>
+                            {METRIC_LABELS[m]}
+                          </option>
+                        ))}
+                      </select>
+                    </SelectWrapper>
+                    {severe ? (
+                      <div className="flex items-center text-xs text-ink-dim sm:col-span-2">
+                        Fires on any severe-weather alert
+                      </div>
+                    ) : (
+                      <>
+                        <SelectWrapper>
+                          <select
+                            {...register(`conditions.${i}.operator` as const)}
+                            className={selectClass}
+                          >
+                            {OPERATORS.map((o) => (
+                              <option key={o} value={o}>
+                                {OPERATOR_LABELS[o]}
+                              </option>
+                            ))}
+                          </select>
+                        </SelectWrapper>
+                        <input
+                          type="number"
+                          step="any"
+                          {...register(`conditions.${i}.threshold` as const, {
+                            valueAsNumber: true,
+                          })}
+                          className={inputClass}
+                        />
+                      </>
+                    )}
+                  </div>
+                  {fields.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => remove(i)}
+                      className="mt-2.5 shrink-0 text-ink-dim transition-colors hover:text-red-400"
+                      aria-label="Remove condition"
+                    >
+                      <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+                        <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {errors.conditions?.message && (
+            <p className="mt-1.5 text-xs text-red-400">
+              {errors.conditions.message}
+            </p>
+          )}
+
+          {fields.length < MAX_CONDITIONS && (
+            <button
+              type="button"
+              onClick={() =>
+                append({ metric: 'TEMPERATURE', operator: 'GT', threshold: 30 })
+              }
+              className="mt-2 text-xs font-semibold text-sky-400 transition-colors hover:text-sky-300"
+            >
+              + Add condition
+            </button>
           )}
         </div>
 
