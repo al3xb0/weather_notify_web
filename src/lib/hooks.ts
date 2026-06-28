@@ -135,6 +135,16 @@ export function useDeleteTrigger() {
   });
 }
 
+export function useClearTriggers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await api.delete('/triggers');
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['triggers'] }),
+  });
+}
+
 export function useTestTrigger() {
   return useMutation({
     mutationFn: async (id: string) => {

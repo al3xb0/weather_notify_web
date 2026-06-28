@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import {
+  useClearTriggers,
   useDeleteTrigger,
   useTestTrigger,
   useTriggers,
@@ -134,6 +135,7 @@ function ActiveToggle({
 export default function DashboardPage() {
   const { data, isLoading } = useTriggers();
   const del = useDeleteTrigger();
+  const clearAll = useClearTriggers();
   const update = useUpdateTrigger();
   const test = useTestTrigger();
   const [creating, setCreating] = useState(false);
@@ -180,6 +182,14 @@ export default function DashboardPage() {
 
   const atLimit = !!data && data.items.length >= 20;
 
+  const handleClearAll = () => {
+    if (
+      window.confirm('Delete all triggers? This cannot be undone.')
+    ) {
+      clearAll.mutate();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -190,15 +200,26 @@ export default function DashboardPage() {
           </p>
         </div>
         {!creating && !editing && (
-          <button
-            onClick={() => setCreating(true)}
-            disabled={atLimit}
-            title={atLimit ? 'Trigger limit reached (max 20)' : undefined}
-            className="flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 hover:shadow-sky-400/25 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:bg-sky-500"
-          >
-            <PlusIcon />
-            New trigger
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            {!!data && data.items.length > 0 && (
+              <button
+                onClick={handleClearAll}
+                disabled={clearAll.isPending}
+                className="rounded-xl border border-danger-bg px-3.5 py-2 text-xs font-medium text-red-400 transition-colors hover:border-red-500/30 hover:bg-danger-bg disabled:opacity-50"
+              >
+                Clear all
+              </button>
+            )}
+            <button
+              onClick={() => setCreating(true)}
+              disabled={atLimit}
+              title={atLimit ? 'Trigger limit reached (max 20)' : undefined}
+              className="flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 hover:shadow-sky-400/25 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:bg-sky-500"
+            >
+              <PlusIcon />
+              New trigger
+            </button>
+          </div>
         )}
       </div>
 
