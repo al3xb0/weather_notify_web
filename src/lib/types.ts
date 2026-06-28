@@ -66,6 +66,9 @@ export interface Profile {
   email: string;
   telegramChatId: string | null;
   telegramLinked: boolean;
+  quietHoursStart: string | null;
+  quietHoursEnd: string | null;
+  timezone: string | null;
   createdAt: string;
 }
 

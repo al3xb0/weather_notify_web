@@ -7,6 +7,7 @@ import {
   useRemovePushSubscription,
   useTelegramLink,
   useUnlinkTelegram,
+  useUpdateProfile,
 } from '@/lib/hooks';
 import {
   getActivePushEndpoint,
@@ -50,22 +51,65 @@ function CheckIcon() {
   );
 }
 
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+      <path
+        d="M16 11.5A6.5 6.5 0 0 1 8.5 4a6.5 6.5 0 1 0 7.5 7.5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function SettingsPage() {
   const { data: profile } = useProfile();
   const telegramLink = useTelegramLink();
   const unlinkTelegram = useUnlinkTelegram();
   const addPush = useAddPushSubscription();
   const removePush = useRemovePushSubscription();
+  const updateProfile = useUpdateProfile();
 
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [pushMsg, setPushMsg] = useState<string | null>(null);
   const [pushError, setPushError] = useState(false);
   // null while we probe this browser's current subscription state.
   const [pushEnabled, setPushEnabled] = useState<boolean | null>(null);
+  // null drafts fall back to the saved profile value (no effect-based mirroring).
+  const [draftStart, setDraftStart] = useState<string | null>(null);
+  const [draftEnd, setDraftEnd] = useState<string | null>(null);
+  const [quietMsg, setQuietMsg] = useState<string | null>(null);
+
+  const quietStart = draftStart ?? profile?.quietHoursStart ?? '';
+  const quietEnd = draftEnd ?? profile?.quietHoursEnd ?? '';
 
   useEffect(() => {
     void getActivePushEndpoint().then((endpoint) => setPushEnabled(!!endpoint));
   }, []);
+
+  const saveQuietHours = async () => {
+    setQuietMsg(null);
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    await updateProfile.mutateAsync({
+      quietHoursStart: quietStart || null,
+      quietHoursEnd: quietEnd || null,
+      timezone,
+    });
+    setQuietMsg('Quiet hours saved');
+  };
+
+  const clearQuietHours = async () => {
+    setQuietMsg(null);
+    setDraftStart('');
+    setDraftEnd('');
+    await updateProfile.mutateAsync({
+      quietHoursStart: null,
+      quietHoursEnd: null,
+    });
+    setQuietMsg('Quiet hours disabled');
+  };
 
   const generateLink = async () => {
     const res = await telegramLink.mutateAsync();
@@ -233,6 +277,75 @@ export default function SettingsPage() {
             >
               {!pushError && <CheckIcon />}
               {pushMsg}
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Quiet hours section */}
+      <section className="overflow-hidden rounded-2xl border border-rim bg-card">
+        <div className="flex items-center gap-3 border-b border-rim px-5 py-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
+            <MoonIcon />
+          </div>
+          <div>
+            <h2 className="font-heading text-sm font-semibold text-ink">Quiet hours</h2>
+            <p className="text-xs text-ink-dim">Mute alerts during a daily window</p>
+          </div>
+          {profile?.quietHoursStart && profile?.quietHoursEnd && (
+            <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-armed-bg px-2.5 py-1 text-xs font-medium text-emerald-400">
+              <CheckIcon />
+              {profile.quietHoursStart}–{profile.quietHoursEnd}
+            </span>
+          )}
+        </div>
+
+        <div className="space-y-4 px-5 py-4">
+          <p className="text-sm text-ink-dim">
+            Alerts that would fire inside this window are held until it ends. Times
+            use your current timezone
+            {profile?.timezone ? ` (${profile.timezone})` : ''}.
+          </p>
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="flex flex-col gap-1 text-xs font-medium text-ink-dim">
+              From
+              <input
+                type="time"
+                value={quietStart}
+                onChange={(e) => setDraftStart(e.target.value)}
+                className="rounded-xl border border-rim bg-elevated px-3 py-2 text-sm text-ink focus:border-sky-500 focus:outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-medium text-ink-dim">
+              To
+              <input
+                type="time"
+                value={quietEnd}
+                onChange={(e) => setDraftEnd(e.target.value)}
+                className="rounded-xl border border-rim bg-elevated px-3 py-2 text-sm text-ink focus:border-sky-500 focus:outline-none"
+              />
+            </label>
+            <button
+              onClick={saveQuietHours}
+              disabled={updateProfile.isPending || !quietStart || !quietEnd}
+              className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition-all hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {updateProfile.isPending ? 'Saving…' : 'Save'}
+            </button>
+            {(profile?.quietHoursStart || profile?.quietHoursEnd) && (
+              <button
+                onClick={clearQuietHours}
+                disabled={updateProfile.isPending}
+                className="rounded-xl border border-rim px-4 py-2 text-sm font-medium text-ink-dim transition-colors hover:border-red-500/40 hover:text-red-400 disabled:opacity-50"
+              >
+                Disable
+              </button>
+            )}
+          </div>
+          {quietMsg && (
+            <p className="flex items-center gap-1.5 text-sm text-emerald-400">
+              <CheckIcon />
+              {quietMsg}
             </p>
           )}
         </div>

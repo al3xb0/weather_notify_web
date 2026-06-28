@@ -163,6 +163,21 @@ export function useProfile() {
   });
 }
 
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      quietHoursStart?: string | null;
+      quietHoursEnd?: string | null;
+      timezone?: string | null;
+    }) => {
+      const { data } = await api.patch<Profile>('/users/me', input);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['profile'] }),
+  });
+}
+
 export function useTelegramLink() {
   return useMutation({
     mutationFn: async () => {
