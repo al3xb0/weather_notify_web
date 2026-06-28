@@ -2,6 +2,7 @@
 
 import React from 'react';
 import {
+  NOTIFICATIONS_PAGE_SIZE,
   useClearNotifications,
   useDeleteNotification,
   useNotifications,
@@ -42,13 +43,28 @@ const CHANNEL_ICONS: Record<string, React.ReactElement> = {
 };
 
 export default function NotificationsPage() {
-  const { data, isLoading } = useNotifications();
+  const [page, setPage] = React.useState(1);
+  const { data, isLoading, isPlaceholderData } = useNotifications(page);
   const del = useDeleteNotification();
   const clear = useClearNotifications();
 
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / NOTIFICATIONS_PAGE_SIZE)) : 1;
+
+  // When the last row on a page is removed, step back so we don't strand an
+  // empty page beyond the first.
+  const handleDelete = (id: string) => {
+    del.mutate(id, {
+      onSuccess: () => {
+        if (data && data.items.length === 1 && page > 1) {
+          setPage((p) => p - 1);
+        }
+      },
+    });
+  };
+
   const handleClear = () => {
     if (window.confirm('Delete all notifications? This cannot be undone.')) {
-      clear.mutate();
+      clear.mutate(undefined, { onSuccess: () => setPage(1) });
     }
   };
 
@@ -130,7 +146,7 @@ export default function NotificationsPage() {
                   {n.status}
                 </span>
                 <button
-                  onClick={() => del.mutate(n.id)}
+                  onClick={() => handleDelete(n.id)}
                   disabled={del.isPending}
                   aria-label="Delete notification"
                   className="text-ink-dim/50 transition-colors hover:text-red-400 disabled:opacity-50"
@@ -142,6 +158,28 @@ export default function NotificationsPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {data && totalPages > 1 && (
+        <div className="flex items-center justify-between gap-4">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1 || isPlaceholderData}
+            className="rounded-xl border border-rim px-3.5 py-2 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            ← Prev
+          </button>
+          <span className="text-xs text-ink-dim">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages || isPlaceholderData}
+            className="rounded-xl border border-rim px-3.5 py-2 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Next →
+          </button>
         </div>
       )}
     </div>

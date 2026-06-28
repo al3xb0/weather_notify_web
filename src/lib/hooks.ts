@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
@@ -146,16 +147,19 @@ export function useTestTrigger() {
 }
 
 // ── Notifications ───────────────────────────────────────
-export function useNotifications() {
+export const NOTIFICATIONS_PAGE_SIZE = 20;
+
+export function useNotifications(page = 1) {
   return useQuery({
-    queryKey: ['notifications'],
+    queryKey: ['notifications', page],
     queryFn: async () => {
       const { data } = await api.get<Paginated<NotificationItem>>(
         '/notifications',
-        { params: { limit: 50 } },
+        { params: { page, limit: NOTIFICATIONS_PAGE_SIZE } },
       );
       return data;
     },
+    placeholderData: keepPreviousData,
   });
 }
 
