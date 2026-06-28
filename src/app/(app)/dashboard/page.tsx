@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   useDeleteTrigger,
   useTestTrigger,
@@ -66,6 +66,8 @@ function statusReason(t: Trigger): string | null {
   }
   return 'conditions met';
 }
+
+const TEST_COOLDOWN_SEC = 60;
 
 function PlusIcon() {
   return (
@@ -142,6 +144,23 @@ export default function DashboardPage() {
     text: string;
     error: boolean;
   } | null>(null);
+  // Per-trigger cooldown: maps trigger id → seconds left before Test re-enables.
+  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
+
+  const hasActiveCooldown = Object.values(cooldowns).some((s) => s > 0);
+  useEffect(() => {
+    if (!hasActiveCooldown) return;
+    const id = setInterval(() => {
+      setCooldowns((prev) => {
+        const next: Record<string, number> = {};
+        for (const [tid, secs] of Object.entries(prev)) {
+          if (secs > 1) next[tid] = secs - 1;
+        }
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [hasActiveCooldown]);
 
   const runTest = async (t: Trigger) => {
     setTestMsg(null);
@@ -153,6 +172,7 @@ export default function DashboardPage() {
         text: channels ? `Test sent via ${channels}` : 'No channels configured',
         error: false,
       });
+      setCooldowns((c) => ({ ...c, [t.id]: TEST_COOLDOWN_SEC }));
     } catch (e) {
       setTestMsg({ id: t.id, text: apiError(e), error: true });
     }
@@ -304,15 +324,21 @@ export default function DashboardPage() {
                   </>
                 ) : (
                   <>
-                    <button
-                      onClick={() => runTest(t)}
-                      disabled={test.isPending && test.variables === t.id}
-                      className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-wait disabled:opacity-50"
-                    >
-                      {test.isPending && test.variables === t.id
-                        ? 'Sending…'
-                        : 'Test'}
-                    </button>
+                    {(() => {
+                      const testing = test.isPending && test.variables === t.id;
+                      const remaining = cooldowns[t.id] ?? 0;
+                      const cooling = remaining > 0;
+                      return (
+                        <button
+                          onClick={() => runTest(t)}
+                          disabled={testing || cooling}
+                          title={cooling ? 'Cooldown after a test run' : undefined}
+                          className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {testing ? 'Sending…' : cooling ? `Wait ${remaining}s` : 'Test'}
+                        </button>
+                      );
+                    })()}
                     <button
                       onClick={() => { setCreating(false); setEditing(t); }}
                       className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
