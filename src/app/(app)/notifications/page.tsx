@@ -7,6 +7,7 @@ import {
   useDeleteNotification,
   useNotifications,
 } from '@/lib/hooks';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { CHANNEL_LABELS } from '@/lib/types';
 
 function EmptyState() {
@@ -44,6 +45,7 @@ const CHANNEL_ICONS: Record<string, React.ReactElement> = {
 
 export default function NotificationsPage() {
   const [page, setPage] = React.useState(1);
+  const [confirmClear, setConfirmClear] = React.useState(false);
   const { data, isLoading, isPlaceholderData } = useNotifications(page);
   const del = useDeleteNotification();
   const clear = useClearNotifications();
@@ -63,9 +65,10 @@ export default function NotificationsPage() {
   };
 
   const handleClear = () => {
-    if (window.confirm('Delete all notifications? This cannot be undone.')) {
-      clear.mutate(undefined, { onSuccess: () => setPage(1) });
-    }
+    clear.mutate(undefined, {
+      onSuccess: () => setPage(1),
+      onSettled: () => setConfirmClear(false),
+    });
   };
 
   return (
@@ -79,7 +82,7 @@ export default function NotificationsPage() {
         </div>
         {data && data.items.length > 0 && (
           <button
-            onClick={handleClear}
+            onClick={() => setConfirmClear(true)}
             disabled={clear.isPending}
             className="shrink-0 rounded-xl border border-danger-bg px-3.5 py-2 text-xs font-medium text-red-400 transition-colors hover:border-red-500/30 hover:bg-danger-bg disabled:opacity-50"
           >
@@ -182,6 +185,17 @@ export default function NotificationsPage() {
           </button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmClear}
+        title="Delete all notifications?"
+        message="This permanently removes your entire notification history. This action cannot be undone."
+        confirmLabel="Delete all"
+        danger
+        pending={clear.isPending}
+        onConfirm={handleClear}
+        onCancel={() => setConfirmClear(false)}
+      />
     </div>
   );
 }
