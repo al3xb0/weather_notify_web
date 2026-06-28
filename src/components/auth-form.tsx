@@ -61,10 +61,11 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
     try {
       if (mode === 'login') {
         await login(data.email, data.password);
+        router.push('/dashboard');
       } else {
         await registerUser(data.email, data.password);
+        router.push('/verify-email');
       }
-      router.push('/dashboard');
     } catch (e) {
       setError(apiError(e));
     }

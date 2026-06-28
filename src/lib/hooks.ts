@@ -56,6 +56,27 @@ export async function logout() {
   useAuthStore.getState().clear();
 }
 
+export function useVerifyEmail() {
+  return useMutation({
+    mutationFn: async (token: string) => {
+      await api.post('/auth/verify-email', { token });
+    },
+  });
+}
+
+export function useResendVerification() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post<{ sent: boolean }>(
+        '/auth/resend-verification',
+      );
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['profile'] }),
+  });
+}
+
 // ── Triggers ────────────────────────────────────────────
 export function useTriggers() {
   return useQuery({

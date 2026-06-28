@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
-import { logout } from '@/lib/hooks';
+import { logout, useProfile, useResendVerification } from '@/lib/hooks';
+import { apiError } from '@/lib/api';
 import { useHydrated } from '@/lib/use-hydrated';
 
 const NAV = [
@@ -58,6 +59,40 @@ function LogoMark() {
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+function EmailVerificationBanner() {
+  const { data: profile } = useProfile();
+  const resend = useResendVerification();
+  const [msg, setMsg] = useState<string | null>(null);
+
+  if (!profile || profile.emailVerified) return null;
+
+  const doResend = async () => {
+    setMsg(null);
+    try {
+      const res = await resend.mutateAsync();
+      setMsg(res.sent ? 'Verification email sent.' : 'Already verified.');
+    } catch (e) {
+      setMsg(apiError(e));
+    }
+  };
+
+  return (
+    <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+      <span className="min-w-[200px] flex-1">
+        Confirm your email to enable alerts — check your inbox for the link.
+      </span>
+      {msg && <span className="text-xs text-amber-200/80">{msg}</span>}
+      <button
+        onClick={doResend}
+        disabled={resend.isPending}
+        className="rounded-lg border border-amber-400/40 px-3 py-1.5 text-xs font-medium text-amber-200 transition-colors hover:bg-amber-500/20 disabled:opacity-50"
+      >
+        {resend.isPending ? 'Sending…' : 'Resend'}
+      </button>
+    </div>
   );
 }
 
@@ -184,7 +219,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">{children}</main>
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <EmailVerificationBanner />
+        {children}
+      </main>
     </div>
   );
 }
