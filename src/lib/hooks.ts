@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { fetchWeather } from '@/lib/weather';
 import type {
   AuthResponse,
   Channel,
@@ -16,6 +17,7 @@ import type {
   NotificationItem,
   Operator,
   Paginated,
+  PinnedCity,
   Profile,
   Trigger,
 } from '@/lib/types';
@@ -153,6 +155,55 @@ export function useTestTrigger() {
       );
       return data;
     },
+  });
+}
+
+// ── Weather / pinned cities ─────────────────────────────
+export function useWeather(latitude?: number, longitude?: number) {
+  return useQuery({
+    queryKey: ['weather', latitude, longitude],
+    queryFn: () => fetchWeather(latitude!, longitude!),
+    enabled: latitude != null && longitude != null,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function usePinnedCities() {
+  return useQuery({
+    queryKey: ['pinned-cities'],
+    queryFn: async () => {
+      const { data } = await api.get<PinnedCity[]>('/pinned-cities');
+      return data;
+    },
+  });
+}
+
+export interface PinnedCityInput {
+  name: string;
+  country?: string;
+  admin1?: string;
+  latitude: number;
+  longitude: number;
+}
+
+export function useAddPinnedCity() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: PinnedCityInput) => {
+      const { data } = await api.post<PinnedCity>('/pinned-cities', input);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['pinned-cities'] }),
+  });
+}
+
+export function useRemovePinnedCity() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/pinned-cities/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['pinned-cities'] }),
   });
 }
 

@@ -58,6 +58,17 @@ export interface NotificationItem {
   payload: NotificationPayload;
 }
 
+export interface PinnedCity {
+  id: string;
+  name: string;
+  country: string | null;
+  admin1: string | null;
+  latitude: number;
+  longitude: number;
+  order: number;
+  createdAt: string;
+}
+
 export interface Paginated<T> {
   items: T[];
   total: number;
