@@ -107,6 +107,17 @@ export function useDeleteTrigger() {
   });
 }
 
+export function useTestTrigger() {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post<{ sent: Channel[] }>(
+        `/triggers/${id}/test`,
+      );
+      return data;
+    },
+  });
+}
+
 // ── Notifications ───────────────────────────────────────
 export function useNotifications() {
   return useQuery({

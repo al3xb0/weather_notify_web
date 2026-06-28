@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useDeleteTrigger, useTriggers, useUpdateTrigger } from '@/lib/hooks';
+import {
+  useDeleteTrigger,
+  useTestTrigger,
+  useTriggers,
+  useUpdateTrigger,
+} from '@/lib/hooks';
+import { apiError } from '@/lib/api';
 import { TriggerForm } from '@/components/trigger-form';
 import {
   METRIC_LABELS,
@@ -116,9 +122,30 @@ export default function DashboardPage() {
   const { data, isLoading } = useTriggers();
   const del = useDeleteTrigger();
   const update = useUpdateTrigger();
+  const test = useTestTrigger();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Trigger | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [testMsg, setTestMsg] = useState<{
+    id: string;
+    text: string;
+    error: boolean;
+  } | null>(null);
+
+  const runTest = async (t: Trigger) => {
+    setTestMsg(null);
+    try {
+      const res = await test.mutateAsync(t.id);
+      const channels = res.sent.map((c) => CHANNEL_LABELS[c]).join(', ');
+      setTestMsg({
+        id: t.id,
+        text: channels ? `Test sent via ${channels}` : 'No channels configured',
+        error: false,
+      });
+    } catch (e) {
+      setTestMsg({ id: t.id, text: apiError(e), error: true });
+    }
+  };
 
   const atLimit = !!data && data.items.length >= 20;
 
@@ -225,6 +252,16 @@ export default function DashboardPage() {
                     </>
                   )}
                 </p>
+
+                {testMsg?.id === t.id && (
+                  <p
+                    className={`text-xs font-medium ${
+                      testMsg.error ? 'text-red-400' : 'text-emerald-400'
+                    }`}
+                  >
+                    {testMsg.text}
+                  </p>
+                )}
               </div>
 
               <div className="flex shrink-0 gap-2">
@@ -249,6 +286,15 @@ export default function DashboardPage() {
                   </>
                 ) : (
                   <>
+                    <button
+                      onClick={() => runTest(t)}
+                      disabled={test.isPending && test.variables === t.id}
+                      className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-wait disabled:opacity-50"
+                    >
+                      {test.isPending && test.variables === t.id
+                        ? 'Sending…'
+                        : 'Test'}
+                    </button>
                     <button
                       onClick={() => { setCreating(false); setEditing(t); }}
                       className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
