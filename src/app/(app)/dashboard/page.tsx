@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import axios from 'axios';
 import {
   useClearTriggers,
   useDeleteTrigger,
@@ -9,6 +10,7 @@ import {
   useUpdateTrigger,
 } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
+import { useTestCooldown } from '@/lib/use-test-cooldown';
 import { TriggerForm } from '@/components/trigger-form';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import {
@@ -70,6 +72,16 @@ function statusReason(t: Trigger): string | null {
 }
 
 const TEST_COOLDOWN_SEC = 60;
+
+// Pull the server's retry-after (seconds) off a 429 so the client cooldown
+// stays in sync with what the backend is actually enforcing.
+function retryAfterFromError(e: unknown): number | null {
+  if (axios.isAxiosError(e) && e.response?.status === 429) {
+    const data = e.response.data as { retryAfter?: number } | undefined;
+    if (typeof data?.retryAfter === 'number') return data.retryAfter;
+  }
+  return null;
+}
 
 function PlusIcon() {
   return (
@@ -148,23 +160,9 @@ export default function DashboardPage() {
     text: string;
     error: boolean;
   } | null>(null);
-  // Per-trigger cooldown: maps trigger id → seconds left before Test re-enables.
-  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
-
-  const hasActiveCooldown = Object.values(cooldowns).some((s) => s > 0);
-  useEffect(() => {
-    if (!hasActiveCooldown) return;
-    const id = setInterval(() => {
-      setCooldowns((prev) => {
-        const next: Record<string, number> = {};
-        for (const [tid, secs] of Object.entries(prev)) {
-          if (secs > 1) next[tid] = secs - 1;
-        }
-        return next;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [hasActiveCooldown]);
+  // Global test cooldown shared across every trigger and persisted across
+  // reloads — mirrors the server-side per-user cooldown.
+  const { remaining, cooling, start: startCooldown } = useTestCooldown();
 
   const runTest = async (t: Trigger) => {
     setTestMsg(null);
@@ -176,8 +174,10 @@ export default function DashboardPage() {
         text: channels ? `Test sent via ${channels}` : 'No channels configured',
         error: false,
       });
-      setCooldowns((c) => ({ ...c, [t.id]: TEST_COOLDOWN_SEC }));
+      startCooldown(TEST_COOLDOWN_SEC);
     } catch (e) {
+      const retryAfter = retryAfterFromError(e);
+      if (retryAfter) startCooldown(retryAfter);
       setTestMsg({ id: t.id, text: apiError(e), error: true });
     }
   };
@@ -345,8 +345,6 @@ export default function DashboardPage() {
                   <>
                     {(() => {
                       const testing = test.isPending && test.variables === t.id;
-                      const remaining = cooldowns[t.id] ?? 0;
-                      const cooling = remaining > 0;
                       return (
                         <button
                           onClick={() => runTest(t)}
