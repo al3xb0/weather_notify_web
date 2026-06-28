@@ -11,6 +11,7 @@ export type Channel = 'TELEGRAM' | 'EMAIL' | 'WEB_PUSH';
 export type TriggerState = 'ARMED' | 'FIRED';
 export type NotifStatus = 'SENT' | 'FAILED';
 export type ConditionLogic = 'AND' | 'OR';
+export type Role = 'USER' | 'ADMIN';
 
 export interface TriggerCondition {
   id: string;
@@ -76,6 +77,44 @@ export interface Paginated<T> {
   limit: number;
 }
 
+export interface AdminStats {
+  users: number;
+  verifiedUsers: number;
+  admins: number;
+  triggers: number;
+  activeTriggers: number;
+  pinnedCities: number;
+  notifications: number;
+  notificationsSent: number;
+  notificationsFailed: number;
+}
+
+export interface AdminUserListItem {
+  id: string;
+  email: string;
+  role: Role;
+  emailVerified: boolean;
+  telegramLinked: boolean;
+  triggerCount: number;
+  notificationCount: number;
+  createdAt: string;
+}
+
+export interface AdminUserDetail {
+  id: string;
+  email: string;
+  role: Role;
+  emailVerified: boolean;
+  telegramLinked: boolean;
+  quietHoursStart: string | null;
+  quietHoursEnd: string | null;
+  timezone: string | null;
+  createdAt: string;
+  triggers: Trigger[];
+  notificationCount: number;
+  pinnedCityCount: number;
+}
+
 export interface AuthResponse {
   accessToken: string;
 }
@@ -83,6 +122,7 @@ export interface AuthResponse {
 export interface Profile {
   id: string;
   email: string;
+  role: Role;
   telegramChatId: string | null;
   telegramLinked: boolean;
   emailVerified: boolean;

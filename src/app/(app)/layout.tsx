@@ -51,6 +51,17 @@ const NAV = [
   },
 ];
 
+const ADMIN_NAV = {
+  href: '/admin',
+  label: 'Admin',
+  icon: (
+    <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+      <path d="M8 1.5l5 2v4c0 3-2.2 5-5 6.5-2.8-1.5-5-3.5-5-6.5v-4l5-2Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M6 8l1.5 1.5L10.5 6.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+};
+
 function LogoMark() {
   return (
     <svg viewBox="0 0 28 28" fill="none" className="h-7 w-7" aria-hidden="true">
@@ -124,7 +135,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const email       = useAuthStore((s) => s.email);
   const hydrated    = useHydrated();
+  const { data: profile } = useProfile();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const navItems = profile?.role === 'ADMIN' ? [...NAV, ADMIN_NAV] : NAV;
 
   useEffect(() => {
     if (hydrated && !accessToken) router.replace('/login');
@@ -159,7 +173,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           {/* Desktop nav */}
           <nav className="hidden sm:flex items-center gap-1">
-            {NAV.map((item) => {
+            {navItems.map((item) => {
               const active = pathname === item.href;
               return (
                 <Link
@@ -204,7 +218,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {menuOpen && (
           <div className="border-t border-rim bg-canvas sm:hidden">
             <nav className="flex flex-col gap-1 px-4 py-3">
-              {NAV.map((item) => {
+              {navItems.map((item) => {
                 const active = pathname === item.href;
                 return (
                   <Link

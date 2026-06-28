@@ -10,6 +10,9 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { fetchWeather } from '@/lib/weather';
 import type {
+  AdminStats,
+  AdminUserDetail,
+  AdminUserListItem,
   AuthResponse,
   Channel,
   ConditionLogic,
@@ -19,6 +22,7 @@ import type {
   Paginated,
   PinnedCity,
   Profile,
+  Role,
   Trigger,
 } from '@/lib/types';
 
@@ -241,6 +245,91 @@ export function useClearNotifications() {
       await api.delete('/notifications');
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+  });
+}
+
+// ── Admin ───────────────────────────────────────────────
+export function useAdminStats() {
+  return useQuery({
+    queryKey: ['admin', 'stats'],
+    queryFn: async () => {
+      const { data } = await api.get<AdminStats>('/admin/stats');
+      return data;
+    },
+  });
+}
+
+export const ADMIN_USERS_PAGE_SIZE = 20;
+
+export function useAdminUsers(page = 1) {
+  return useQuery({
+    queryKey: ['admin', 'users', page],
+    queryFn: async () => {
+      const { data } = await api.get<Paginated<AdminUserListItem>>(
+        '/admin/users',
+        { params: { page, limit: ADMIN_USERS_PAGE_SIZE } },
+      );
+      return data;
+    },
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useAdminUser(id: string | null) {
+  return useQuery({
+    queryKey: ['admin', 'user', id],
+    queryFn: async () => {
+      const { data } = await api.get<AdminUserDetail>(`/admin/users/${id}`);
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useUpdateAdminUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: { role?: Role; emailVerified?: boolean };
+    }) => {
+      const { data } = await api.patch<AdminUserDetail>(
+        `/admin/users/${id}`,
+        input,
+      );
+      return data;
+    },
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'user', id] });
+      qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
+    },
+  });
+}
+
+export function useDeleteAdminUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/admin/users/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin'] }),
+  });
+}
+
+export function useDeleteAdminTrigger() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string; userId: string }) => {
+      await api.delete(`/admin/triggers/${id}`);
+    },
+    onSuccess: (_, { userId }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'user', userId] });
+      qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
+    },
   });
 }
 
