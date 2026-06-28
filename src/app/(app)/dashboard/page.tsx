@@ -5,6 +5,7 @@ import { useDeleteTrigger, useTriggers, useUpdateTrigger } from '@/lib/hooks';
 import { TriggerForm } from '@/components/trigger-form';
 import {
   METRIC_LABELS,
+  METRIC_UNITS,
   OPERATOR_LABELS,
   CHANNEL_LABELS,
   Trigger,
@@ -13,6 +14,40 @@ import {
 function conditionText(t: Trigger): string {
   if (t.metric === 'SEVERE') return 'Severe weather detected';
   return `${METRIC_LABELS[t.metric]} ${OPERATOR_LABELS[t.operator]} ${t.threshold}`;
+}
+
+function formatObserved(t: Trigger): string | null {
+  if (t.lastObservedValue == null) return null;
+  if (t.metric === 'SEVERE') return `code ${t.lastObservedValue}`;
+  const v = Math.round(t.lastObservedValue * 10) / 10;
+  return `${v}${METRIC_UNITS[t.metric]}`;
+}
+
+// Client-side explanation of why a trigger is or isn't firing, derived purely
+// from the latest observation the watcher recorded.
+function statusReason(t: Trigger): string | null {
+  if (!t.isActive || t.lastEvaluatedAt == null || t.lastObservedValue == null) {
+    return null;
+  }
+  if (t.metric === 'SEVERE') {
+    return t.lastMatched ? 'severe weather active' : 'no severe weather';
+  }
+  if (t.lastMatched === false) {
+    return `need ${OPERATOR_LABELS[t.operator]} ${t.threshold} — not reached`;
+  }
+  if (t.state === 'FIRED' && t.lastFiredAt) {
+    const next = new Date(
+      new Date(t.lastFiredAt).getTime() + t.cooldownMin * 60_000,
+    );
+    if (next.getTime() > Date.now()) {
+      const hhmm = next.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      return `condition met · cooldown until ${hhmm}`;
+    }
+  }
+  return 'condition met';
 }
 
 function PlusIcon() {
@@ -167,6 +202,17 @@ export default function DashboardPage() {
                   <span className="mx-1.5 text-ink-dim/40">·</span>
                   {conditionText(t)}
                 </p>
+
+                {formatObserved(t) && (
+                  <p className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="inline-flex items-center rounded-full bg-elevated px-2 py-0.5 font-medium text-sky-300">
+                      Now: {formatObserved(t)}
+                    </span>
+                    {statusReason(t) && (
+                      <span className="text-ink-dim/60">{statusReason(t)}</span>
+                    )}
+                  </p>
+                )}
 
                 <p className="text-xs text-ink-dim/60">
                   {t.channels.map((c) => CHANNEL_LABELS[c]).join(', ')}

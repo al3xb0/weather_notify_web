@@ -25,6 +25,9 @@ export interface Trigger {
   isActive: boolean;
   state: TriggerState;
   lastFiredAt: string | null;
+  lastObservedValue: number | null;
+  lastEvaluatedAt: string | null;
+  lastMatched: boolean | null;
   createdAt: string;
 }
 
@@ -73,6 +76,15 @@ export const METRIC_LABELS: Record<Metric, string> = {
   PRECIPITATION: 'Precipitation (mm)',
   HUMIDITY: 'Humidity (%)',
   SEVERE: 'Severe weather',
+};
+
+export const METRIC_UNITS: Record<Metric, string> = {
+  TEMPERATURE: '°C',
+  APPARENT_TEMP: '°C',
+  WIND_SPEED: ' km/h',
+  PRECIPITATION: ' mm',
+  HUMIDITY: '%',
+  SEVERE: '',
 };
 
 export const OPERATOR_LABELS: Record<Operator, string> = {
