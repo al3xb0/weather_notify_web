@@ -2,7 +2,17 @@ import type { NextConfig } from 'next';
 
 // Allow the app to reach the Core API (a different origin in production).
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
-const connectSrc = ["'self'", apiUrl].filter(Boolean).join(' ');
+
+// Next's dev server needs 'unsafe-eval' (React debug / Fast Refresh) and a ws:
+// channel for hot reload. Both are dev-only and never emitted in production,
+// where React never calls eval().
+const isDev = process.env.NODE_ENV !== 'production';
+const scriptSrc = ["'self'", "'unsafe-inline'", isDev ? "'unsafe-eval'" : '']
+  .filter(Boolean)
+  .join(' ');
+const connectSrc = ["'self'", apiUrl, isDev ? 'ws:' : '']
+  .filter(Boolean)
+  .join(' ');
 
 // Pragmatic CSP: 'unsafe-inline' is required for Next's framework bootstrap
 // scripts/styles without a per-request nonce. It still blocks external script
@@ -17,7 +27,7 @@ const csp = [
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src ${scriptSrc}`,
   `connect-src ${connectSrc}`,
   "worker-src 'self'",
   "manifest-src 'self'",
