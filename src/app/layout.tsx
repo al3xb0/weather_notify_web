@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Sora } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
+import { SiteFooter } from '@/components/site-footer';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -35,7 +36,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-base text-ink">
-        <Providers>{children}</Providers>
+        <Providers>
+          <div className="flex min-h-screen flex-col">
+            <div className="flex-1">{children}</div>
+            <SiteFooter />
+          </div>
+        </Providers>
       </body>
     </html>
   );
