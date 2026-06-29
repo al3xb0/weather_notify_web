@@ -32,10 +32,9 @@ const securityHeaders = [
     key: 'Permissions-Policy',
     value: 'camera=(), microphone=(), geolocation=()',
   },
-  {
-    key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload',
-  },
+  // No includeSubDomains/preload: this app runs on a subdomain and must not
+  // dictate HSTS policy for the apex domain or sibling subdomains.
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000' },
 ];
 
 const nextConfig: NextConfig = {
