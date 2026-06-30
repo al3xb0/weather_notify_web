@@ -63,4 +63,4 @@ Deploy to **Vercel**: import the repo, set `NEXT_PUBLIC_API_URL` and
 
 ---
 
-Created by [Aliaksei Konyshau](https://aliaksei-konyshau.vercel.app/).
+Created by [Aliaksei Konyshau](https://www.al-gres.com/).
