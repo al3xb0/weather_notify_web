@@ -71,7 +71,7 @@ function statusReason(t: Trigger): string | null {
   return 'conditions met';
 }
 
-const TEST_COOLDOWN_SEC = 60;
+const TEST_COOLDOWN_SEC = 600; // 10 minutes, must match server-side constant
 
 // Pull the server's retry-after (seconds) off a 429 so the client cooldown
 // stays in sync with what the backend is actually enforcing.
@@ -194,7 +194,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="font-heading text-2xl font-bold text-ink">Triggers</h1>
           <p className="mt-0.5 text-sm text-ink-dim">
-            {data ? `${data.items.length} of 20 monitor${data.items.length !== 1 ? 's' : ''}` : 'Weather monitors'}
+            {data ? `${data.items.length} of 10 monitor${data.items.length !== 1 ? 's' : ''}` : 'Weather monitors'}
           </p>
         </div>
         {!creating && !editing && (

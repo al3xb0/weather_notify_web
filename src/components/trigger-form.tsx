@@ -42,7 +42,7 @@ const schema = z.object({
   channels: z.array(z.enum(CHANNELS)).min(1, 'Select at least one channel'),
   cooldownMin: z
     .number({ error: 'Enter a number' })
-    .min(5, 'Minimum cooldown is 5 minutes'),
+    .min(10, 'Minimum cooldown is 10 minutes'),
 });
 type FormData = z.infer<typeof schema>;
 
