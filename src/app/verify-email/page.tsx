@@ -67,12 +67,17 @@ function VerifyEmailInner() {
         {status === 'idle' && (
           <p className="text-sm text-ink-dim">
             We sent a verification link to your email. Open it to confirm your
-            address. Didn&apos;t get it?
+            address.
           </p>
         )}
 
         {status !== 'success' && (
           <div className="mt-5 space-y-2">
+            <p className="text-xs text-ink-dim/70">
+              Didn&apos;t get it? Check your <strong className="font-medium text-ink-dim">spam</strong> or{' '}
+              <strong className="font-medium text-ink-dim">promotions</strong> folder — automated
+              emails often end up there.
+            </p>
             <button
               onClick={doResend}
               disabled={resend.isPending}
