@@ -53,7 +53,7 @@ export function WeatherDetail({
         <div>
           <p className="font-heading text-4xl font-bold text-ink">
             {Math.round(current.temperature)}°
-            <span className="ml-1 text-base font-medium text-ink-dim">C</span>
+            <span className="ml-1 text-base font-medium">C</span>
           </p>
           <p className="text-sm text-ink-dim">
             {cond.label} · feels like {Math.round(current.apparentTemp)}°

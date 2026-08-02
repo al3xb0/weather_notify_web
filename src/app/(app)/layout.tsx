@@ -102,7 +102,7 @@ function EmailVerificationBanner() {
 
   return (
     <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
-      <span className="min-w-[200px] flex-1">
+      <span className="min-w-50 flex-1">
         Confirm your email to enable alerts — check your inbox for the link.
       </span>
       {msg && <span className="text-xs text-amber-200/80">{msg}</span>}
@@ -200,7 +200,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
-            <span className="hidden text-xs text-ink-dim sm:inline truncate max-w-[160px]">
+            <span className="hidden text-xs text-ink-dim sm:inline truncate max-w-40">
               {email}
             </span>
             <button

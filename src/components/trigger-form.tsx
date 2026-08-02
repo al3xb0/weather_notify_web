@@ -100,7 +100,7 @@ export function TriggerForm({
       className="rounded-2xl border border-rim-bright bg-card p-6 shadow-xl shadow-black/30"
     >
       <div className="mb-5 flex items-center justify-between">
-        <h2 className="font-heading text-base font-semibold text-ink">
+        <h2 className="font-heading text-base font-semibold">
           {initial ? 'Edit trigger' : 'New trigger'}
         </h2>
         <button
