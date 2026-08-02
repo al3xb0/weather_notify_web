@@ -18,4 +18,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npm run test
+      # src/lib/api-types.ts is generated from the API's OpenAPI document and
+      # committed. Regenerating it needs both repositories checked out side by
+      # side, so it runs locally (`npm run gen:api`) rather than here; the API
+      # repository's own CI proves that document matches its controllers.
       - run: npm run build

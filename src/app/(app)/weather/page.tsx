@@ -6,6 +6,7 @@ import { WeatherDetail } from '@/components/weather-detail';
 import { PinnedCityCard } from '@/components/pinned-city-card';
 import {
   useAddPinnedCity,
+  useApiLimits,
   usePinnedCities,
   useRemovePinnedCity,
 } from '@/lib/hooks';
@@ -17,7 +18,6 @@ import { useToast } from '@/components/ui/toast';
 import type { GeoResult } from '@/lib/geocode';
 import type { PinnedCity } from '@/lib/types';
 
-const MAX_PINNED = 12;
 
 interface SelectedLocation {
   name: string;
@@ -68,10 +68,11 @@ export default function WeatherPage() {
   const addPin = useAddPinnedCity();
   const removePin = useRemovePinnedCity();
   const toast = useToast();
+  const { maxPinnedCities } = useApiLimits();
 
   const pinnedMatch =
     selected && pinned ? pinned.find((c) => sameSpot(selected, c)) : undefined;
-  const atLimit = !!pinned && pinned.length >= MAX_PINNED;
+  const atLimit = !!pinned && pinned.length >= maxPinnedCities;
 
   const handlePin = async () => {
     if (!selected) return;
@@ -126,7 +127,7 @@ export default function WeatherPage() {
               <button
                 onClick={handlePin}
                 disabled={addPin.isPending || atLimit}
-                title={atLimit ? `Pin limit reached (max ${MAX_PINNED})` : undefined}
+                title={atLimit ? `Pin limit reached (max ${maxPinnedCities})` : undefined}
                 className="shrink-0 rounded-xl bg-sky-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
               >
                 {addPin.isPending ? 'Pinning…' : '☆ Pin city'}
@@ -147,7 +148,7 @@ export default function WeatherPage() {
           </h2>
           {!!pinned && pinned.length > 0 && (
             <span className="text-xs text-ink-dim/60">
-              {pinned.length} of {MAX_PINNED}
+              {pinned.length} of {maxPinnedCities}
             </span>
           )}
         </div>

@@ -11,6 +11,15 @@ const { createMutate, updateMutate } = vi.hoisted(() => ({
 vi.mock('@/lib/hooks', () => ({
   useCreateTrigger: () => ({ mutateAsync: createMutate }),
   useUpdateTrigger: () => ({ mutateAsync: updateMutate }),
+  useApiLimits: () => ({
+    maxTriggersPerUser: 10,
+    maxConditionsPerTrigger: 5,
+    maxPinnedCities: 12,
+    testCooldownSec: 600,
+    minCooldownMin: 10,
+    maxCooldownMin: 1440,
+    maxChannelsPerTrigger: 3,
+  }),
 }));
 vi.mock('@/lib/api', () => ({ apiError: (e: unknown) => (e as Error).message }));
 vi.mock('@/components/city-autocomplete', () => ({

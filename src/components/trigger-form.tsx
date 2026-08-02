@@ -1,18 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CityAutocomplete } from '@/components/city-autocomplete';
-import { TriggerInput, useCreateTrigger, useUpdateTrigger } from '@/lib/hooks';
+import {
+  TriggerInput,
+  useApiLimits,
+  useCreateTrigger,
+  useUpdateTrigger,
+} from '@/lib/hooks';
 import { apiError } from '@/lib/api';
 import { Field, FieldGroup, inputClass } from '@/components/ui/field';
 import { ChannelPicker } from '@/components/triggers/channel-picker';
 import { ConditionRow } from '@/components/triggers/condition-row';
 import {
+  buildTriggerSchema,
   DEFAULT_CONDITION,
-  MAX_CONDITIONS,
-  triggerSchema,
   type TriggerFormData,
 } from '@/components/triggers/trigger-schema';
 import type { Trigger } from '@/lib/types';
@@ -26,7 +30,9 @@ export function TriggerForm({
 }) {
   const create = useCreateTrigger();
   const update = useUpdateTrigger();
+  const limits = useApiLimits();
   const [error, setError] = useState<string | null>(null);
+  const schema = useMemo(() => buildTriggerSchema(limits), [limits]);
 
   const {
     register,
@@ -35,7 +41,7 @@ export function TriggerForm({
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<TriggerFormData>({
-    resolver: zodResolver(triggerSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       name: initial?.name ?? '',
       city: initial?.city ?? '',
@@ -213,7 +219,7 @@ export function TriggerForm({
             ))}
           </div>
 
-          {fields.length < MAX_CONDITIONS && (
+          {fields.length < limits.maxConditionsPerTrigger && (
             <button
               type="button"
               onClick={() => append({ ...DEFAULT_CONDITION })}

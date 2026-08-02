@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useClearTriggers, useTriggers } from '@/lib/hooks';
-import { MAX_TRIGGERS_PER_USER } from '@/lib/constants';
+import { useApiLimits, useClearTriggers, useTriggers } from '@/lib/hooks';
 import { TriggerForm } from '@/components/trigger-form';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { AsyncBoundary } from '@/components/ui/async-boundary';
@@ -41,13 +40,14 @@ function RadarIcon() {
 
 export default function DashboardPage() {
   const triggers = useTriggers();
+  const { maxTriggersPerUser } = useApiLimits();
   const clearAll = useClearTriggers();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Trigger | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
 
   const count = triggers.data?.items.length ?? 0;
-  const atLimit = !!triggers.data && count >= MAX_TRIGGERS_PER_USER;
+  const atLimit = !!triggers.data && count >= maxTriggersPerUser;
   const editorOpen = creating || !!editing;
 
   return (
@@ -57,7 +57,7 @@ export default function DashboardPage() {
           <h1 className="font-heading text-2xl font-bold text-ink">Triggers</h1>
           <p className="mt-0.5 text-sm text-ink-dim">
             {triggers.data
-              ? `${count} of ${MAX_TRIGGERS_PER_USER} monitor${count !== 1 ? 's' : ''}`
+              ? `${count} of ${maxTriggersPerUser} monitor${count !== 1 ? 's' : ''}`
               : 'Weather monitors'}
           </p>
         </div>
@@ -77,7 +77,7 @@ export default function DashboardPage() {
               disabled={atLimit}
               title={
                 atLimit
-                  ? `Trigger limit reached (max ${MAX_TRIGGERS_PER_USER})`
+                  ? `Trigger limit reached (max ${maxTriggersPerUser})`
                   : undefined
               }
               className="focus-ring flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 hover:shadow-sky-400/25 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:bg-sky-500"

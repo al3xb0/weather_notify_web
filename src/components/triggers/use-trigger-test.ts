@@ -1,9 +1,8 @@
 'use client';
 
 import axios from 'axios';
-import { useTestTrigger } from '@/lib/hooks';
+import { useApiLimits, useTestTrigger } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
-import { TEST_COOLDOWN_SEC } from '@/lib/constants';
 import { useTestCooldown } from '@/lib/use-test-cooldown';
 import { useToast } from '@/components/ui/toast';
 import { CHANNEL_LABELS, type Trigger } from '@/lib/types';
@@ -27,6 +26,7 @@ function retryAfterFromError(e: unknown): number | null {
 export function useTriggerTest() {
   const test = useTestTrigger();
   const toast = useToast();
+  const { testCooldownSec } = useApiLimits();
   const { remaining, cooling, start } = useTestCooldown();
 
   const run = async (t: Trigger) => {
@@ -39,7 +39,7 @@ export function useTriggerTest() {
           : 'No channels configured for this trigger',
         channels ? 'success' : 'info',
       );
-      start(TEST_COOLDOWN_SEC);
+      start(testCooldownSec);
     } catch (e) {
       // A 429 means the server's own cooldown is still running; adopt its
       // deadline instead of the local default.

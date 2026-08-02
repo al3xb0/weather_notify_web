@@ -1,46 +1,44 @@
-export type Metric =
-  | 'TEMPERATURE'
-  | 'APPARENT_TEMP'
-  | 'WIND_SPEED'
-  | 'PRECIPITATION'
-  | 'HUMIDITY'
-  | 'SEVERE';
+import type { components } from './api-types';
 
-export type Operator = 'GT' | 'GTE' | 'LT' | 'LTE' | 'EQ';
-export type Channel = 'TELEGRAM' | 'EMAIL' | 'WEB_PUSH';
-export type TriggerState = 'ARMED' | 'FIRED';
-/** PENDING is the claim a delivery takes before the channel call. */
-export type NotifStatus = 'PENDING' | 'SENT' | 'FAILED';
-export type ConditionLogic = 'AND' | 'OR';
-export type Role = 'USER' | 'ADMIN';
+/**
+ * Domain types come from the API's OpenAPI document — see `npm run gen:api`.
+ * Only presentation concerns are written by hand below; a label belongs to the
+ * UI and has no business being served by the backend.
+ *
+ * These were previously ~110 lines of hand-maintained interfaces, which is a
+ * contract kept in sync by memory.
+ */
+type Schema = components['schemas'];
 
-export interface TriggerCondition {
-  id: string;
-  metric: Metric;
-  operator: Operator;
-  threshold: number;
-  order: number;
-  lastObservedValue: number | null;
-  lastMatched: boolean | null;
-}
+export type Metric = Schema['Metric'];
+export type Operator = Schema['Operator'];
+export type Channel = Schema['Channel'];
+export type TriggerState = Schema['TriggerState'];
+export type NotifStatus = Schema['NotifStatus'];
+export type ConditionLogic = Schema['ConditionLogic'];
+export type Role = Schema['Role'];
 
-export interface Trigger {
-  id: string;
-  name: string;
-  city: string;
-  latitude: number;
-  longitude: number;
-  conditions: TriggerCondition[];
-  conditionLogic: ConditionLogic;
-  channels: Channel[];
-  cooldownMin: number;
-  isActive: boolean;
-  state: TriggerState;
-  lastFiredAt: string | null;
-  lastEvaluatedAt: string | null;
-  createdAt: string;
-}
+export type TriggerCondition = Schema['TriggerConditionResponseDto'];
+export type Trigger = Schema['TriggerResponseDto'];
+/** The stored payload is free-form JSON; narrowed to what the UI reads. */
+export type NotificationItem = Omit<
+  Schema['NotificationResponseDto'],
+  'payload'
+> & { payload: NotificationPayload };
+export type PinnedCity = Schema['PinnedCityResponseDto'];
+export type Profile = Schema['ProfileResponseDto'];
+export type AuthResponse = Schema['AuthResponseDto'];
+export type AdminStats = Schema['AdminStatsDto'];
+export type AdminUserListItem = Schema['AdminUserDto'];
+export type AdminUserDetail = Schema['AdminUserDetailDto'];
+export type ApiLimits = Schema['ApiLimitsDto'];
+export type Meta = Schema['MetaResponseDto'];
 
+/**
+ * Fields of the fired event the notification list renders. The generated type
+ * for `payload` is an opaque object, so the narrowing lives here instead of
+ * being asserted at every call site.
+ */
 export interface NotificationPayload {
   triggerName?: string;
   city?: string;
@@ -50,28 +48,7 @@ export interface NotificationPayload {
   observedValue?: number;
 }
 
-export interface NotificationItem {
-  id: string;
-  /** Null once the originating trigger has been deleted. */
-  triggerId: string | null;
-  channel: Channel;
-  status: NotifStatus;
-  error: string | null;
-  createdAt: string;
-  payload: NotificationPayload;
-}
-
-export interface PinnedCity {
-  id: string;
-  name: string;
-  country: string | null;
-  admin1: string | null;
-  latitude: number;
-  longitude: number;
-  order: number;
-  createdAt: string;
-}
-
+/** Paginated envelope. Generated inline per endpoint, so named once here. */
 export interface Paginated<T> {
   items: T[];
   total: number;
@@ -79,60 +56,8 @@ export interface Paginated<T> {
   limit: number;
 }
 
-export interface AdminStats {
-  users: number;
-  verifiedUsers: number;
-  admins: number;
-  triggers: number;
-  activeTriggers: number;
-  pinnedCities: number;
-  notifications: number;
-  notificationsSent: number;
-  notificationsFailed: number;
-}
-
-export interface AdminUserListItem {
-  id: string;
-  email: string;
-  role: Role;
-  emailVerified: boolean;
-  telegramLinked: boolean;
-  triggerCount: number;
-  notificationCount: number;
-  createdAt: string;
-}
-
-export interface AdminUserDetail {
-  id: string;
-  email: string;
-  role: Role;
-  emailVerified: boolean;
-  telegramLinked: boolean;
-  quietHoursStart: string | null;
-  quietHoursEnd: string | null;
-  timezone: string | null;
-  createdAt: string;
-  triggers: Trigger[];
-  notificationCount: number;
-  pinnedCityCount: number;
-}
-
-export interface AuthResponse {
-  accessToken: string;
-}
-
-export interface Profile {
-  id: string;
-  email: string;
-  role: Role;
-  telegramChatId: string | null;
-  telegramLinked: boolean;
-  emailVerified: boolean;
-  quietHoursStart: string | null;
-  quietHoursEnd: string | null;
-  timezone: string | null;
-  createdAt: string;
-}
+// ── Presentation ────────────────────────────────────────
+// Hand-written on purpose: these are UI copy, not part of the API contract.
 
 export const METRIC_LABELS: Record<Metric, string> = {
   TEMPERATURE: 'Temperature (°C)',

@@ -4,6 +4,7 @@
  * silently, and that is exactly the bug this prevents.
  */
 export const queryKeys = {
+  meta: ['meta'] as const,
   profile: ['profile'] as const,
   triggers: ['triggers'] as const,
   pinnedCities: ['pinned-cities'] as const,
