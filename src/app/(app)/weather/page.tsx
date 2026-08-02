@@ -10,6 +10,10 @@ import {
   useRemovePinnedCity,
 } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
+import { AsyncBoundary } from '@/components/ui/async-boundary';
+import { EmptyState } from '@/components/ui/empty-state';
+import { SkeletonCard } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/toast';
 import type { GeoResult } from '@/lib/geocode';
 import type { PinnedCity } from '@/lib/types';
 
@@ -59,10 +63,11 @@ function locationSubtitle(loc: SelectedLocation): string {
 
 export default function WeatherPage() {
   const [selected, setSelected] = useState<SelectedLocation | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
-  const { data: pinned, isLoading } = usePinnedCities();
+  const pinnedQuery = usePinnedCities();
+  const pinned = pinnedQuery.data;
   const addPin = useAddPinnedCity();
   const removePin = useRemovePinnedCity();
+  const toast = useToast();
 
   const pinnedMatch =
     selected && pinned ? pinned.find((c) => sameSpot(selected, c)) : undefined;
@@ -70,7 +75,6 @@ export default function WeatherPage() {
 
   const handlePin = async () => {
     if (!selected) return;
-    setMsg(null);
     try {
       await addPin.mutateAsync({
         name: selected.name,
@@ -80,7 +84,7 @@ export default function WeatherPage() {
         longitude: selected.longitude,
       });
     } catch (e) {
-      setMsg(apiError(e));
+      toast.show(apiError(e), 'error');
     }
   };
 
@@ -129,7 +133,6 @@ export default function WeatherPage() {
               </button>
             )}
           </div>
-          {msg && <p className="text-xs font-medium text-red-400">{msg}</p>}
           <WeatherDetail
             latitude={selected.latitude}
             longitude={selected.longitude}
@@ -149,23 +152,31 @@ export default function WeatherPage() {
           )}
         </div>
 
-        {isLoading && (
+        <AsyncBoundary
+          query={pinnedQuery}
+          skeleton={
+            <div
+              role="status"
+              aria-busy="true"
+              aria-label="Loading pinned cities"
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {[1, 2, 3].map((i) => (
+                <SkeletonCard key={i} className="h-28" />
+              ))}
+            </div>
+          }
+          isEmpty={(list) => list.length === 0}
+          empty={
+            <EmptyState
+              title="No pinned cities"
+              hint="Search a city above and pin it to keep an eye on its weather here."
+            />
+          }
+        >
+          {(list) => (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-28 animate-pulse rounded-2xl border border-rim bg-card/50" />
-            ))}
-          </div>
-        )}
-
-        {pinned && pinned.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-rim bg-card/50 py-10 text-center text-sm text-ink-dim/70">
-            Search a city above and pin it to keep an eye on its weather here.
-          </div>
-        )}
-
-        {pinned && pinned.length > 0 && (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {pinned.map((c) => (
+            {list.map((c) => (
               <PinnedCityCard
                 key={c.id}
                 city={c}
@@ -176,7 +187,8 @@ export default function WeatherPage() {
               />
             ))}
           </div>
-        )}
+          )}
+        </AsyncBoundary>
       </div>
     </div>
   );

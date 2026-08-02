@@ -9,7 +9,8 @@ export type Metric =
 export type Operator = 'GT' | 'GTE' | 'LT' | 'LTE' | 'EQ';
 export type Channel = 'TELEGRAM' | 'EMAIL' | 'WEB_PUSH';
 export type TriggerState = 'ARMED' | 'FIRED';
-export type NotifStatus = 'SENT' | 'FAILED';
+/** PENDING is the claim a delivery takes before the channel call. */
+export type NotifStatus = 'PENDING' | 'SENT' | 'FAILED';
 export type ConditionLogic = 'AND' | 'OR';
 export type Role = 'USER' | 'ADMIN';
 
@@ -51,7 +52,8 @@ export interface NotificationPayload {
 
 export interface NotificationItem {
   id: string;
-  triggerId: string;
+  /** Null once the originating trigger has been deleted. */
+  triggerId: string | null;
   channel: Channel;
   status: NotifStatus;
   error: string | null;

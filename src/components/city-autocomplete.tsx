@@ -1,20 +1,28 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { GeoResult, searchCities } from '@/lib/geocode';
 
 export function CityAutocomplete({
   initial,
   onSelect,
+  inputId,
+  invalid,
+  describedBy,
 }: {
   initial?: string;
   onSelect: (geo: GeoResult) => void;
+  /** Supplied by <Field> so the label and error text point at this input. */
+  inputId?: string;
+  invalid?: boolean;
+  describedBy?: string;
 }) {
   const [query, setQuery] = useState(initial ?? '');
   const [results, setResults] = useState<GeoResult[]>([]);
   const [focused, setFocused] = useState(false);
   const skip = useRef(true);
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const listId = useId();
 
   useEffect(() => {
     if (skip.current) {
@@ -43,6 +51,13 @@ export function CityAutocomplete({
           <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
         </svg>
         <input
+          id={inputId}
+          role="combobox"
+          aria-expanded={open}
+          aria-autocomplete="list"
+          aria-controls={listId}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => {
@@ -59,11 +74,13 @@ export function CityAutocomplete({
       </div>
 
       {open && (
-        <ul className="absolute z-20 mt-1.5 max-h-52 w-full overflow-y-auto overscroll-contain rounded-xl border border-rim-bright bg-elevated shadow-2xl shadow-black/50">
+        <ul id={listId} role="listbox" aria-label="City suggestions" className="absolute z-20 mt-1.5 max-h-52 w-full overflow-y-auto overscroll-contain rounded-xl border border-rim-bright bg-elevated shadow-2xl shadow-black/50">
           {results.map((r, i) => (
-            <li key={`${r.latitude}-${r.longitude}-${i}`}>
+            <li key={`${r.latitude}-${r.longitude}-${i}`} role="none">
               <button
                 type="button"
+                role="option"
+                aria-selected={false}
                 onClick={() => {
                   onSelect(r);
                   setQuery(r.name);

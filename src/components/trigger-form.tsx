@@ -3,61 +3,19 @@
 import { useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { TriggerInput, useCreateTrigger, useUpdateTrigger } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
+import { Field, FieldGroup, inputClass } from '@/components/ui/field';
+import { ChannelPicker } from '@/components/triggers/channel-picker';
+import { ConditionRow } from '@/components/triggers/condition-row';
 import {
-  CHANNEL_LABELS,
-  Channel,
-  METRIC_LABELS,
-  Metric,
-  OPERATOR_LABELS,
-  Operator,
-  Trigger,
-} from '@/lib/types';
-
-const METRICS = Object.keys(METRIC_LABELS) as [Metric, ...Metric[]];
-const OPERATORS = Object.keys(OPERATOR_LABELS) as [Operator, ...Operator[]];
-const CHANNELS = Object.keys(CHANNEL_LABELS) as [Channel, ...Channel[]];
-
-const MAX_CONDITIONS = 5;
-
-const conditionSchema = z.object({
-  metric: z.enum(METRICS),
-  operator: z.enum(OPERATORS),
-  threshold: z.number({ error: 'Enter a number' }),
-});
-
-const schema = z.object({
-  name: z.string().trim().min(1, 'Name is required'),
-  city: z.string().min(1, 'Pick a city from the list'),
-  latitude: z.number({ error: 'Pick a city from the list' }),
-  longitude: z.number({ error: 'Pick a city from the list' }),
-  conditions: z
-    .array(conditionSchema)
-    .min(1, 'Add at least one condition')
-    .max(MAX_CONDITIONS, `Up to ${MAX_CONDITIONS} conditions`),
-  conditionLogic: z.enum(['AND', 'OR']),
-  channels: z.array(z.enum(CHANNELS)).min(1, 'Select at least one channel'),
-  cooldownMin: z
-    .number({ error: 'Enter a number' })
-    .min(10, 'Minimum cooldown is 10 minutes'),
-});
-type FormData = z.infer<typeof schema>;
-
-function SelectWrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative">
-      {children}
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-        <svg viewBox="0 0 12 12" fill="none" className="h-3 w-3 text-ink-dim" aria-hidden="true">
-          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-    </div>
-  );
-}
+  DEFAULT_CONDITION,
+  MAX_CONDITIONS,
+  triggerSchema,
+  type TriggerFormData,
+} from '@/components/triggers/trigger-schema';
+import type { Trigger } from '@/lib/types';
 
 export function TriggerForm({
   initial,
@@ -76,8 +34,8 @@ export function TriggerForm({
     control,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  } = useForm<TriggerFormData>({
+    resolver: zodResolver(triggerSchema),
     defaultValues: {
       name: initial?.name ?? '',
       city: initial?.city ?? '',
@@ -87,7 +45,7 @@ export function TriggerForm({
         metric: c.metric,
         operator: c.operator,
         threshold: c.threshold,
-      })) ?? [{ metric: 'TEMPERATURE', operator: 'GT', threshold: 30 }],
+      })) ?? [{ ...DEFAULT_CONDITION }],
       conditionLogic: initial?.conditionLogic ?? 'AND',
       channels: initial?.channels ?? ['TELEGRAM'],
       cooldownMin: initial?.cooldownMin ?? 60,
@@ -133,15 +91,12 @@ export function TriggerForm({
     }
   });
 
-  const selectClass =
-    'w-full appearance-none rounded-xl border border-rim bg-base py-2.5 pl-3.5 pr-8 text-sm text-ink outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10';
-
-  const inputClass =
-    'w-full rounded-xl border border-rim bg-base px-3.5 py-2.5 text-sm text-ink placeholder-ink-dim/50 outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10';
+  const located = latitude !== undefined && longitude !== undefined;
 
   return (
     <form
       onSubmit={onSubmit}
+      aria-label={initial ? 'Edit trigger' : 'New trigger'}
       className="rounded-2xl border border-rim-bright bg-card p-6 shadow-xl shadow-black/30"
     >
       <div className="mb-5 flex items-center justify-between">
@@ -151,69 +106,82 @@ export function TriggerForm({
         <button
           type="button"
           onClick={onDone}
-          className="text-ink-dim transition-colors hover:text-ink"
+          className="focus-ring text-ink-dim transition-colors hover:text-ink"
           aria-label="Close"
         >
-          <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
-            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            className="h-4 w-4"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 3l10 10M13 3L3 13"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+            />
           </svg>
         </button>
       </div>
 
       <div className="space-y-5">
-        <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
-            Name
-          </label>
-          <input
-            {...register('name')}
-            placeholder="e.g. Berlin heat wave"
-            className={inputClass}
-          />
-          {errors.name && (
-            <p className="mt-1.5 text-xs text-red-400">{errors.name.message}</p>
+        <Field label="Name" error={errors.name?.message}>
+          {({ id, invalid, describedBy }) => (
+            <input
+              id={id}
+              aria-invalid={invalid}
+              aria-describedby={describedBy}
+              {...register('name')}
+              placeholder="e.g. Berlin heat wave"
+              className={inputClass}
+            />
           )}
-        </div>
+        </Field>
 
-        <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
-            City
-          </label>
-          <CityAutocomplete
-            initial={city}
-            onSelect={(g) => {
-              setValue('city', g.name, { shouldValidate: true });
-              setValue('latitude', g.latitude, { shouldValidate: true });
-              setValue('longitude', g.longitude, { shouldValidate: true });
-            }}
-          />
-          {latitude !== undefined && longitude !== undefined && (
-            <p className="mt-1.5 text-xs text-ink-dim">
-              <span className="text-sky-400">{city}</span>
-              {' '}
-              <span className="text-ink-dim/50">
-                ({latitude.toFixed(2)}, {longitude.toFixed(2)})
-              </span>
-            </p>
+        <Field
+          label="City"
+          error={errors.city?.message ?? errors.latitude?.message}
+          hint={
+            located ? (
+              <>
+                <span className="text-sky-400">{city}</span>{' '}
+                <span className="text-ink-dim/70">
+                  ({latitude.toFixed(2)}, {longitude.toFixed(2)})
+                </span>
+              </>
+            ) : undefined
+          }
+        >
+          {({ id, invalid, describedBy }) => (
+            <CityAutocomplete
+              inputId={id}
+              invalid={invalid}
+              describedBy={describedBy}
+              initial={city}
+              onSelect={(g) => {
+                setValue('city', g.name, { shouldValidate: true });
+                setValue('latitude', g.latitude, { shouldValidate: true });
+                setValue('longitude', g.longitude, { shouldValidate: true });
+              }}
+            />
           )}
-          {(errors.city || errors.latitude) && (
-            <p className="mt-1.5 text-xs text-red-400">
-              {errors.city?.message ?? errors.latitude?.message}
-            </p>
-          )}
-        </div>
+        </Field>
 
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <label className="block text-xs font-medium uppercase tracking-wider text-ink-dim">
-              Conditions
-            </label>
-            {fields.length > 1 && (
-              <div className="flex items-center gap-1 rounded-lg border border-rim p-0.5 text-xs font-semibold">
+        <FieldGroup
+          label="Conditions"
+          error={errors.conditions?.message}
+          action={
+            fields.length > 1 && (
+              <div
+                role="radiogroup"
+                aria-label="Combine conditions with"
+                className="flex items-center gap-1 rounded-lg border border-rim p-0.5 text-xs font-semibold"
+              >
                 {(['AND', 'OR'] as const).map((l) => (
                   <label
                     key={l}
-                    className={`cursor-pointer rounded-md px-2.5 py-1 transition-colors ${
+                    className={`cursor-pointer rounded-md px-2.5 py-1 transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-sky-400 ${
                       logic === l
                         ? 'bg-sky-500/15 text-sky-300'
                         : 'text-ink-dim hover:text-ink'
@@ -229,155 +197,60 @@ export function TriggerForm({
                   </label>
                 ))}
               </div>
-            )}
-          </div>
-
+            )
+          }
+        >
           <div className="space-y-2">
-            {fields.map((field, i) => {
-              const severe = watchedConditions?.[i]?.metric === 'SEVERE';
-              return (
-                <div key={field.id} className="flex items-start gap-2">
-                  <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
-                    <SelectWrapper>
-                      <select
-                        {...register(`conditions.${i}.metric` as const)}
-                        className={selectClass}
-                      >
-                        {METRICS.map((m) => (
-                          <option key={m} value={m}>
-                            {METRIC_LABELS[m]}
-                          </option>
-                        ))}
-                      </select>
-                    </SelectWrapper>
-                    {severe ? (
-                      <div className="flex items-center text-xs text-ink-dim sm:col-span-2">
-                        Fires on any severe-weather alert
-                      </div>
-                    ) : (
-                      <>
-                        <SelectWrapper>
-                          <select
-                            {...register(`conditions.${i}.operator` as const)}
-                            className={selectClass}
-                          >
-                            {OPERATORS.map((o) => (
-                              <option key={o} value={o}>
-                                {OPERATOR_LABELS[o]}
-                              </option>
-                            ))}
-                          </select>
-                        </SelectWrapper>
-                        <input
-                          type="number"
-                          step="any"
-                          {...register(`conditions.${i}.threshold` as const, {
-                            valueAsNumber: true,
-                          })}
-                          className={inputClass}
-                        />
-                      </>
-                    )}
-                  </div>
-                  {fields.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => remove(i)}
-                      className="mt-2.5 shrink-0 text-ink-dim transition-colors hover:text-red-400"
-                      aria-label="Remove condition"
-                    >
-                      <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
-                        <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+            {fields.map((field, i) => (
+              <ConditionRow
+                key={field.id}
+                index={i}
+                severe={watchedConditions?.[i]?.metric === 'SEVERE'}
+                removable={fields.length > 1}
+                register={register}
+                onRemove={() => remove(i)}
+              />
+            ))}
           </div>
-
-          {errors.conditions?.message && (
-            <p className="mt-1.5 text-xs text-red-400">
-              {errors.conditions.message}
-            </p>
-          )}
 
           {fields.length < MAX_CONDITIONS && (
             <button
               type="button"
-              onClick={() =>
-                append({ metric: 'TEMPERATURE', operator: 'GT', threshold: 30 })
-              }
-              className="mt-2 text-xs font-semibold text-sky-400 transition-colors hover:text-sky-300"
+              onClick={() => append({ ...DEFAULT_CONDITION })}
+              className="focus-ring mt-2 text-xs font-semibold text-sky-400 transition-colors hover:text-sky-300"
             >
               + Add condition
             </button>
           )}
-        </div>
+        </FieldGroup>
 
-        <div>
-          <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-ink-dim">
-            Channels
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {CHANNELS.map((c) => {
-              const active = channels.includes(c);
-              return (
-                <label
-                  key={c}
-                  className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
-                    active
-                      ? 'border-sky-500/50 bg-sky-500/10 text-sky-300'
-                      : 'border-rim text-ink-dim hover:border-rim-bright hover:text-ink'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    value={c}
-                    {...register('channels')}
-                    className="sr-only"
-                  />
-                  {active && (
-                    <svg viewBox="0 0 10 10" fill="none" className="h-2.5 w-2.5" aria-hidden="true">
-                      <path d="M2 5l2.5 2.5 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                  {CHANNEL_LABELS[c]}
-                </label>
-              );
-            })}
-          </div>
-          {errors.channels && (
-            <p className="mt-1.5 text-xs text-red-400">
-              {errors.channels.message}
-            </p>
-          )}
-        </div>
+        <FieldGroup label="Channels" error={errors.channels?.message}>
+          <ChannelPicker selected={channels} register={register} />
+        </FieldGroup>
 
-        <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
-            Cooldown (minutes)
-          </label>
-          <div className="flex items-center gap-2">
+        <Field
+          label="Cooldown (minutes)"
+          error={errors.cooldownMin?.message}
+          hint="Minutes to wait between repeated alerts"
+        >
+          {({ id, invalid, describedBy }) => (
             <input
+              id={id}
               type="number"
-              min={5}
+              min={10}
+              aria-invalid={invalid}
+              aria-describedby={describedBy}
               {...register('cooldownMin', { valueAsNumber: true })}
-              className="w-28 rounded-xl border border-rim bg-base px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10"
+              className="w-28 rounded-xl border border-rim bg-base px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10 aria-invalid:border-red-500/60"
             />
-            <span className="text-xs text-ink-dim">
-              min between repeated alerts
-            </span>
-          </div>
-          {errors.cooldownMin && (
-            <p className="mt-1.5 text-xs text-red-400">
-              {errors.cooldownMin.message}
-            </p>
           )}
-        </div>
+        </Field>
 
         {error && (
-          <div className="rounded-xl border border-red-500/20 bg-danger-bg px-4 py-3 text-sm text-red-400">
+          <div
+            role="alert"
+            className="rounded-xl border border-red-500/20 bg-danger-bg px-4 py-3 text-sm text-red-400"
+          >
             {error}
           </div>
         )}
@@ -386,14 +259,14 @@ export function TriggerForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition-all hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="focus-ring rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition-all hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {initial ? 'Save changes' : 'Create trigger'}
           </button>
           <button
             type="button"
             onClick={onDone}
-            className="rounded-xl border border-rim px-5 py-2.5 text-sm font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
+            className="focus-ring rounded-xl border border-rim px-5 py-2.5 text-sm font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
           >
             Cancel
           </button>

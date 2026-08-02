@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { useState } from 'react';
 import {
   NOTIFICATIONS_PAGE_SIZE,
   useClearNotifications,
@@ -8,49 +8,37 @@ import {
   useNotifications,
 } from '@/lib/hooks';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { CHANNEL_LABELS } from '@/lib/types';
+import { AsyncBoundary } from '@/components/ui/async-boundary';
+import { EmptyState } from '@/components/ui/empty-state';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { NotificationRow } from '@/components/notifications/notification-row';
+import type { NotificationItem, Paginated } from '@/lib/types';
 
-function EmptyState() {
+const PAGER_BUTTON =
+  'focus-ring rounded-xl border border-rim px-3.5 py-2 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-not-allowed disabled:opacity-40';
+
+function BellIcon() {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rim bg-card/50 py-16 text-center">
-      <svg viewBox="0 0 48 48" fill="none" className="mb-4 h-12 w-12 text-ink-dim/40" aria-hidden="true">
-        <path d="M24 8a10 10 0 0 0-10 10v7.5l-2.5 3.75h25L34 25.5V18A10 10 0 0 0 24 8Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M20 34a4 4 0 0 0 8 0" stroke="currentColor" strokeWidth="1.5" />
-      </svg>
-      <p className="font-heading text-sm font-medium text-ink-dim">No notifications yet</p>
-      <p className="mt-1 text-xs text-ink-dim/60">Alerts will appear here when triggers fire</p>
-    </div>
+    <svg viewBox="0 0 48 48" fill="none" className="h-12 w-12" aria-hidden="true">
+      <path
+        d="M24 8a10 10 0 0 0-10 10v7.5l-2.5 3.75h25L34 25.5V18A10 10 0 0 0 24 8Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M20 34a4 4 0 0 0 8 0" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
   );
 }
 
-const CHANNEL_ICONS: Record<string, React.ReactElement> = {
-  TELEGRAM: (
-    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
-      <path d="M14 2 L6 9 M14 2 L10 14 L6 9 L2 7 L14 2Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-    </svg>
-  ),
-  EMAIL: (
-    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
-      <rect x="2" y="4" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M2 4.5l6 5 6-5" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-    </svg>
-  ),
-  WEB_PUSH: (
-    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
-      <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 1v1M8 14v1M1 8h1M14 8h1M3.2 3.2l.7.7M12.1 12.1l.7.7M12.1 3.2l-.7.7M3.2 12.1l.7.7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  ),
-};
-
 export default function NotificationsPage() {
-  const [page, setPage] = React.useState(1);
-  const [confirmClear, setConfirmClear] = React.useState(false);
-  const { data, isLoading, isPlaceholderData } = useNotifications(page);
+  const [page, setPage] = useState(1);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const notifications = useNotifications(page);
   const del = useDeleteNotification();
   const clear = useClearNotifications();
 
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / NOTIFICATIONS_PAGE_SIZE)) : 1;
+  const data = notifications.data;
 
   // When the last row on a page is removed, step back so we don't strand an
   // empty page beyond the first.
@@ -64,127 +52,99 @@ export default function NotificationsPage() {
     });
   };
 
-  const handleClear = () => {
-    clear.mutate(undefined, {
-      onSuccess: () => setPage(1),
-      onSettled: () => setConfirmClear(false),
-    });
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-ink">Notifications</h1>
+          <h1 className="font-heading text-2xl font-bold text-ink">
+            Notifications
+          </h1>
           <p className="mt-0.5 text-sm text-ink-dim">
-            {data ? `${data.total} alert${data.total !== 1 ? 's' : ''} logged` : 'Alert history'}
+            {data
+              ? `${data.total} alert${data.total !== 1 ? 's' : ''} logged`
+              : 'Alert history'}
           </p>
         </div>
-        {data && data.items.length > 0 && (
+        {!!data?.items.length && (
           <button
             onClick={() => setConfirmClear(true)}
             disabled={clear.isPending}
-            className="shrink-0 rounded-xl border border-danger-bg px-3.5 py-2 text-xs font-medium text-red-400 transition-colors hover:border-red-500/30 hover:bg-danger-bg disabled:opacity-50"
+            className="focus-ring shrink-0 rounded-xl border border-danger-bg px-3.5 py-2 text-xs font-medium text-red-400 transition-colors hover:border-red-500/30 hover:bg-danger-bg disabled:opacity-50"
           >
             Clear all
           </button>
         )}
       </div>
 
-      {isLoading && (
-        <div className="space-y-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl border border-rim bg-card/50" />
-          ))}
-        </div>
-      )}
-
-      {data && data.items.length === 0 && <EmptyState />}
-
-      {data && data.items.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-rim bg-card">
-          {data.items.map((n, idx) => (
-            <div
-              key={n.id}
-              className={`flex items-center justify-between gap-4 px-4 py-3.5 ${
-                idx < data.items.length - 1 ? 'border-b border-rim' : ''
-              }`}
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-elevated text-ink-dim">
-                  {CHANNEL_ICONS[n.channel]}
-                </div>
-
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-ink">
-                    {n.payload?.triggerName ?? 'Trigger'}
-                    {n.payload?.city && (
-                      <span className="font-normal text-ink-dim"> · {n.payload.city}</span>
-                    )}
-                  </p>
-                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-dim">
-                    <span>{CHANNEL_LABELS[n.channel]}</span>
-                    <span className="text-ink-dim/40">•</span>
-                    <span>{new Date(n.createdAt).toLocaleString()}</span>
-                  </p>
-                  {n.error && (
-                    <p className="mt-0.5 truncate text-xs text-red-400">{n.error}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex shrink-0 items-center gap-3">
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    n.status === 'SENT'
-                      ? 'bg-armed-bg text-emerald-400'
-                      : 'bg-danger-bg text-red-400'
-                  }`}
-                >
-                  <span
-                    className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-                      n.status === 'SENT' ? 'bg-emerald-400' : 'bg-red-400'
-                    }`}
+      <AsyncBoundary
+        query={notifications}
+        skeleton={
+          <SkeletonList
+            count={4}
+            variant="row"
+            label="Loading notification history"
+          />
+        }
+        isEmpty={(p: Paginated<NotificationItem>) => p.items.length === 0}
+        empty={
+          <EmptyState
+            icon={<BellIcon />}
+            title="No notifications yet"
+            hint="Alerts will appear here when triggers fire"
+          />
+        }
+      >
+        {(pageData) => {
+          const totalPages = Math.max(
+            1,
+            Math.ceil(pageData.total / NOTIFICATIONS_PAGE_SIZE),
+          );
+          return (
+            <div className="space-y-6">
+              <ul className="overflow-hidden rounded-2xl border border-rim bg-card">
+                {pageData.items.map((n, idx) => (
+                  <NotificationRow
+                    key={n.id}
+                    notification={n}
+                    last={idx === pageData.items.length - 1}
+                    deleting={del.isPending && del.variables === n.id}
+                    onDelete={() => handleDelete(n.id)}
                   />
-                  {n.status}
-                </span>
-                <button
-                  onClick={() => handleDelete(n.id)}
-                  disabled={del.isPending}
-                  aria-label="Delete notification"
-                  className="text-ink-dim/50 transition-colors hover:text-red-400 disabled:opacity-50"
-                >
-                  <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
-                    <path d="M3 4h10M6.5 4V2.5h3V4M5 4l.5 9h5L11 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                ))}
+              </ul>
 
-      {data && totalPages > 1 && (
-        <div className="flex items-center justify-between gap-4">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1 || isPlaceholderData}
-            className="rounded-xl border border-rim px-3.5 py-2 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            ← Prev
-          </button>
-          <span className="text-xs text-ink-dim">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page >= totalPages || isPlaceholderData}
-            className="rounded-xl border border-rim px-3.5 py-2 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Next →
-          </button>
-        </div>
-      )}
+              {totalPages > 1 && (
+                <nav
+                  aria-label="Notifications pagination"
+                  className="flex items-center justify-between gap-4"
+                >
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1 || notifications.isPlaceholderData}
+                    className={PAGER_BUTTON}
+                  >
+                    ← Prev
+                  </button>
+                  <span aria-live="polite" className="text-xs text-ink-dim">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={
+                      page >= totalPages || notifications.isPlaceholderData
+                    }
+                    className={PAGER_BUTTON}
+                  >
+                    Next →
+                  </button>
+                </nav>
+              )}
+            </div>
+          );
+        }}
+      </AsyncBoundary>
 
       <ConfirmDialog
         open={confirmClear}
@@ -193,7 +153,12 @@ export default function NotificationsPage() {
         confirmLabel="Delete all"
         danger
         pending={clear.isPending}
-        onConfirm={handleClear}
+        onConfirm={() =>
+          clear.mutate(undefined, {
+            onSuccess: () => setPage(1),
+            onSettled: () => setConfirmClear(false),
+          })
+        }
         onCancel={() => setConfirmClear(false)}
       />
     </div>

@@ -40,6 +40,22 @@ describe('TriggerForm', () => {
     expect(createMutate).not.toHaveBeenCalled();
   });
 
+  it('marks an invalid field and points it at its error message', async () => {
+    render(<TriggerForm onDone={vi.fn()} />);
+    await userEvent.click(screen.getByRole('button', { name: /create trigger/i }));
+
+    const name = await screen.findByLabelText('Name');
+    expect(name).toHaveAttribute('aria-invalid', 'true');
+    expect(name).toHaveAccessibleDescription('Name is required');
+  });
+
+  it('labels every condition control, so a screen reader can tell rows apart', () => {
+    render(<TriggerForm onDone={vi.fn()} />);
+    expect(screen.getByLabelText('Condition 1 metric')).toBeInTheDocument();
+    expect(screen.getByLabelText('Condition 1 operator')).toBeInTheDocument();
+    expect(screen.getByLabelText('Condition 1 threshold')).toBeInTheDocument();
+  });
+
   it('creates a trigger and calls onDone on valid input', async () => {
     createMutate.mockResolvedValueOnce({ id: 't1' });
     const onDone = vi.fn();

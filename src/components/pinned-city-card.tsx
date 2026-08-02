@@ -1,6 +1,7 @@
 'use client';
 
 import { useWeather } from '@/lib/hooks';
+import { Skeleton } from '@/components/ui/skeleton';
 import { describeWeather } from '@/lib/weather';
 import type { PinnedCity } from '@/lib/types';
 
@@ -52,7 +53,7 @@ export function PinnedCityCard({
 
       <div className="mt-3 flex items-center gap-2">
         {isLoading || !data || !cond ? (
-          <div className="h-8 w-20 animate-pulse rounded-lg bg-elevated" />
+          <Skeleton className="h-8 w-20" />
         ) : (
           <>
             <span className="text-2xl leading-none" aria-hidden="true">

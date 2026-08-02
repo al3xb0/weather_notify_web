@@ -1,6 +1,7 @@
 'use client';
 
 import { useWeather } from '@/lib/hooks';
+import { SkeletonCard } from '@/components/ui/skeleton';
 import { describeWeather } from '@/lib/weather';
 
 function Metric({ label, value }: { label: string; value: string }) {
@@ -27,11 +28,14 @@ export function WeatherDetail({
   const { data, isLoading, isError } = useWeather(latitude, longitude);
 
   if (isLoading) {
-    return <div className="h-56 animate-pulse rounded-2xl border border-rim bg-card/50" />;
+    return <SkeletonCard className="h-56" />;
   }
   if (isError || !data) {
     return (
-      <div className="rounded-2xl border border-rim bg-card p-6 text-sm text-red-400">
+      <div
+        role="alert"
+        className="rounded-2xl border border-red-500/20 bg-danger-bg/40 p-6 text-sm text-red-400"
+      >
         Couldn&apos;t load weather for this location.
       </div>
     );

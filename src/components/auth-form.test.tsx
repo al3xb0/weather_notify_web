@@ -33,6 +33,21 @@ describe('AuthForm', () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith('/dashboard'));
   });
 
+  it('wires each field to its own error so it is announced, not just drawn', async () => {
+    render(<AuthForm mode="login" />);
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    const email = await screen.findByLabelText('Email');
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+    // The accessible description is the error text, which only holds if
+    // aria-describedby points at it.
+    expect(email).toHaveAccessibleDescription('Enter a valid email');
+
+    const password = screen.getByLabelText('Password');
+    expect(password).toHaveAttribute('aria-invalid', 'true');
+    expect(password).toHaveAccessibleDescription('At least 8 characters');
+  });
+
   it('surfaces an API error', async () => {
     vi.mocked(login).mockRejectedValueOnce(new Error('Invalid credentials'));
     render(<AuthForm mode="login" />);

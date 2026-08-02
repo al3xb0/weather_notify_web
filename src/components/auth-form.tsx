@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { login, register as registerUser } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
+import { Field, inputClass } from '@/components/ui/field';
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -89,43 +90,44 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4">
-            {/* Email */}
-            <div>
-              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
-                Email
-              </label>
-              <input
-                type="email"
-                autoComplete="email"
-                {...register('email')}
-                className="w-full rounded-xl border border-rim bg-base px-3.5 py-2.5 text-sm text-ink placeholder-ink-dim/50 outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10"
-                placeholder="you@example.com"
-              />
-              {errors.email && (
-                <p className="mt-1.5 text-xs text-red-400">{errors.email.message}</p>
+            <Field label="Email" error={errors.email?.message}>
+              {({ id, invalid, describedBy }) => (
+                <input
+                  id={id}
+                  type="email"
+                  autoComplete="email"
+                  aria-invalid={invalid}
+                  aria-describedby={describedBy}
+                  {...register('email')}
+                  className={inputClass}
+                  placeholder="you@example.com"
+                />
               )}
-            </div>
+            </Field>
 
-            {/* Password */}
-            <div>
-              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-dim">
-                Password
-              </label>
-              <input
-                type="password"
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                {...register('password')}
-                className="w-full rounded-xl border border-rim bg-base px-3.5 py-2.5 text-sm text-ink placeholder-ink-dim/50 outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10"
-                placeholder="••••••••"
-              />
-              {errors.password && (
-                <p className="mt-1.5 text-xs text-red-400">{errors.password.message}</p>
+            <Field label="Password" error={errors.password?.message}>
+              {({ id, invalid, describedBy }) => (
+                <input
+                  id={id}
+                  type="password"
+                  autoComplete={
+                    mode === 'login' ? 'current-password' : 'new-password'
+                  }
+                  aria-invalid={invalid}
+                  aria-describedby={describedBy}
+                  {...register('password')}
+                  className={inputClass}
+                  placeholder="••••••••"
+                />
               )}
-            </div>
+            </Field>
 
             {/* Global error */}
             {error && (
-              <div className="rounded-xl border border-red-500/20 bg-danger-bg px-4 py-3 text-sm text-red-400">
+              <div
+                role="alert"
+                className="rounded-xl border border-red-500/20 bg-danger-bg px-4 py-3 text-sm text-red-400"
+              >
                 {error}
               </div>
             )}
