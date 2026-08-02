@@ -17,6 +17,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # An advisory reaches production through the lockfile rather than through
+      # a diff, so no other step in this job would ever fail because of one.
+      - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm run test
       # src/lib/api-types.ts is generated from the API's OpenAPI document and
