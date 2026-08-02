@@ -12,6 +12,17 @@ jobs:
       NEXT_PUBLIC_API_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
+
+      # actions/checkout cannot write outside the workspace, so the API
+      # repository lands in ./api-spec rather than the ../weather_notify the
+      # local gen:api script expects. Only the document is needed.
+      - uses: actions/checkout@v4
+        with:
+          repository: al3xb0/weather_notify
+          path: api-spec
+          sparse-checkout: openapi.json
+          sparse-checkout-cone-mode: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -22,8 +33,11 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm run test
-      # src/lib/api-types.ts is generated from the API's OpenAPI document and
-      # committed. Regenerating it needs both repositories checked out side by
-      # side, so it runs locally (`npm run gen:api`) rather than here; the API
-      # repository's own CI proves that document matches its controllers.
+
+      # The API's own CI proves openapi.json matches its controllers; this
+      # proves the committed client types still match openapi.json. Without it
+      # a DTO change on the API side leaves this repository green and stale,
+      # because tsc only ever checks the types against themselves.
+      - run: npm run gen:api:check
+
       - run: npm run build

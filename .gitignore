@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# The API repository, checked out by CI only, to regenerate src/lib/api-types.ts
+# against the contract it was generated from.
+/api-spec
