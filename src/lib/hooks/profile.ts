@@ -1,0 +1,74 @@
+'use client';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import type { Profile } from '@/lib/types';
+import { freshness, queryKeys } from './query-keys';
+
+export function useProfile() {
+  return useQuery({
+    queryKey: queryKeys.profile,
+    queryFn: async () => {
+      const { data } = await api.get<Profile>('/users/me');
+      return data;
+    },
+    ...freshness.profile,
+  });
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      quietHoursStart?: string | null;
+      quietHoursEnd?: string | null;
+      timezone?: string | null;
+    }) => {
+      const { data } = await api.patch<Profile>('/users/me', input);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.profile }),
+  });
+}
+
+export function useTelegramLink() {
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post<{ url: string; token: string }>(
+        '/users/me/telegram-link',
+      );
+      return data;
+    },
+  });
+}
+
+export function useUnlinkTelegram() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await api.delete('/users/me/telegram');
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.profile }),
+  });
+}
+
+export function useAddPushSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (sub: {
+      endpoint: string;
+      keys: { p256dh: string; auth: string };
+    }) => {
+      await api.post('/users/me/push', sub);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.profile }),
+  });
+}
+
+export function useRemovePushSubscription() {
+  return useMutation({
+    mutationFn: async (endpoint: string) => {
+      await api.delete('/users/me/push', { data: { endpoint } });
+    },
+  });
+}
