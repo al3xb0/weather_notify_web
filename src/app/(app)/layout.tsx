@@ -160,6 +160,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-base">
+      <a
+        href="#main"
+        className="skip-link focus-ring rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white"
+      >
+        Skip to content
+      </a>
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-rim bg-canvas/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
@@ -243,7 +249,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <main id="main" className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <EmailVerificationBanner />
         {children}
       </main>

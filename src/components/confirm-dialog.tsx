@@ -15,10 +15,14 @@ interface ConfirmDialogProps {
   onCancel: () => void;
 }
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 /**
  * Reusable confirmation popup rendered in a portal — a styled, accessible
- * replacement for window.confirm. Esc and backdrop clicks cancel; the body
- * scroll is locked while open.
+ * replacement for window.confirm. Esc and backdrop clicks cancel, the body
+ * scroll is locked while open, Tab is trapped inside, and focus returns to
+ * whatever opened it on close.
  */
 export function ConfirmDialog({
   open,
@@ -31,13 +35,45 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+
+  // Callers pass inline closures, so these change identity on every parent
+  // render. Reading them through refs keeps the effect below keyed on `open`
+  // alone — otherwise it would tear down and re-run mid-dialog, stealing focus
+  // back to Cancel and losing track of which element opened it.
+  const latest = useRef({ pending, onCancel });
+  useEffect(() => {
+    latest.current = { pending, onCancel };
+  });
 
   useEffect(() => {
     if (!open) return;
+
+    // Remember the trigger so focus can go back where the user left it —
+    // otherwise closing the dialog drops keyboard focus onto <body>.
+    const opener = document.activeElement as HTMLElement | null;
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !pending) onCancel();
+      if (e.key === 'Escape' && !latest.current.pending) {
+        latest.current.onCancel();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const items = panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE);
+      if (!items || items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      // Wrap at both ends so Tab can never reach the page behind the overlay.
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
+
     document.addEventListener('keydown', onKey);
     cancelRef.current?.focus();
     const prevOverflow = document.body.style.overflow;
@@ -45,8 +81,9 @@ export function ConfirmDialog({
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
+      opener?.focus?.();
     };
-  }, [open, pending, onCancel]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -56,19 +93,28 @@ export function ConfirmDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
+      aria-describedby="confirm-dialog-message"
     >
       <div
         className="absolute inset-0 bg-base/70 backdrop-blur-sm"
         onClick={pending ? undefined : onCancel}
       />
-      <div className="relative w-full max-w-sm rounded-2xl border border-rim bg-card p-6 shadow-2xl shadow-black/40 animate-fade-up">
+      <div
+        ref={panelRef}
+        className="relative w-full max-w-sm rounded-2xl border border-rim bg-card p-6 shadow-2xl shadow-black/40 animate-fade-up"
+      >
         <h2
           id="confirm-dialog-title"
           className="font-heading text-lg font-semibold text-ink"
         >
           {title}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-ink-dim">{message}</p>
+        <p
+          id="confirm-dialog-message"
+          className="mt-2 text-sm leading-relaxed text-ink-dim"
+        >
+          {message}
+        </p>
         <div className="mt-6 flex justify-end gap-2">
           <button
             ref={cancelRef}

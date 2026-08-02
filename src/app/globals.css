@@ -66,8 +66,48 @@ input, select, textarea, button {
   to   { background-position: -200% center; }
 }
 
+/*
+ * One visible focus treatment for the whole app. Browsers only paint :focus
+ * for keyboard users via :focus-visible, so pointer clicks stay clean while
+ * keyboard navigation is always traceable.
+ */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Anything that needs the ring without being natively focusable. */
+.focus-ring:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+/* Respect users who asked the OS to stop animating things. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── Custom utilities ───────────────────────────────────── */
 @layer utilities {
+  /* Off-screen until focused — the keyboard escape hatch past the header. */
+  .skip-link {
+    position: absolute;
+    left: 0.75rem;
+    top: -3rem;
+    z-index: 100;
+    transition: top 0.15s ease;
+  }
+  .skip-link:focus {
+    top: 0.75rem;
+  }
+
   /* Radar ring animations for landing hero */
   .animate-radar {
     animation: radar-pulse 2.6s ease-out infinite;
