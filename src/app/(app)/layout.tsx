@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
 import { logout, useProfile, useResendVerification } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
-import { useHydrated } from '@/lib/use-hydrated';
+import { useAuthBootstrap } from '@/lib/use-auth-bootstrap';
 
 const NAV = [
   {
@@ -132,17 +132,19 @@ function HamburgerIcon({ open }: { open: boolean }) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
   const pathname = usePathname();
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const email       = useAuthStore((s) => s.email);
-  const hydrated    = useHydrated();
-  const { data: profile } = useProfile();
+  const status   = useAuthBootstrap();
+  const storedEmail = useAuthStore((s) => s.email);
+  const { data: profile } = useProfile(status === 'authenticated');
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navItems = profile?.role === 'ADMIN' ? [...NAV, ADMIN_NAV] : NAV;
+  // Known immediately after a sign-in, and only after the profile lands when
+  // the session was restored from the cookie.
+  const email = storedEmail ?? profile?.email ?? '';
 
   useEffect(() => {
-    if (hydrated && !accessToken) router.replace('/login');
-  }, [hydrated, accessToken, router]);
+    if (status === 'anonymous') router.replace('/login');
+  }, [status, router]);
 
   // Close mobile menu on route change — runs as layout effect to avoid
   // a visible flash of the open menu before navigation completes
@@ -151,7 +153,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(id);
   }, [pathname]);
 
-  if (!hydrated || !accessToken) return null;
+  if (status !== 'authenticated') return null;
 
   const onLogout = async () => {
     await logout();

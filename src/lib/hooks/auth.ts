@@ -11,8 +11,7 @@ export async function register(email: string, password: string) {
     email,
     password,
   });
-  useAuthStore.getState().setAccessToken(data.accessToken);
-  useAuthStore.getState().setEmail(email);
+  useAuthStore.getState().setSession(data.accessToken, email);
 }
 
 export async function login(email: string, password: string) {
@@ -20,8 +19,7 @@ export async function login(email: string, password: string) {
     email,
     password,
   });
-  useAuthStore.getState().setAccessToken(data.accessToken);
-  useAuthStore.getState().setEmail(email);
+  useAuthStore.getState().setSession(data.accessToken, email);
 }
 
 export async function logout() {

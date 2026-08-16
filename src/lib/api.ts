@@ -33,7 +33,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 let refreshing: Promise<string | null> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
+async function requestAccessToken(): Promise<string | null> {
   const { setAccessToken, clear } = useAuthStore.getState();
   try {
     const { data } = await axios.post<AuthResponse>(
@@ -47,6 +47,19 @@ async function refreshAccessToken(): Promise<string | null> {
     clear();
     return null;
   }
+}
+
+/**
+ * Trade the refresh cookie for an access token, at most once at a time. Both
+ * callers share the in-flight promise: the 401 interceptor below, and the
+ * bootstrap that restores the session after a reload (the access token is
+ * deliberately not persisted anywhere).
+ */
+export function refreshSession(): Promise<string | null> {
+  refreshing ??= requestAccessToken().finally(() => {
+    refreshing = null;
+  });
+  return refreshing;
 }
 
 api.interceptors.response.use(
@@ -64,10 +77,7 @@ api.interceptors.response.use(
       !isAuthRequest
     ) {
       original._retry = true;
-      refreshing ??= refreshAccessToken().finally(() => {
-        refreshing = null;
-      });
-      const token = await refreshing;
+      const token = await refreshSession();
       if (token) {
         original.headers = {
           ...original.headers,
