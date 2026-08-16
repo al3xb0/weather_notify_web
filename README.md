@@ -7,7 +7,7 @@ create weather triggers for any city, and manage delivery over Telegram, Email a
 
 ## Features
 
-- **JWT auth** with silent access-token refresh (Zustand + a single-flight axios interceptor)
+- **JWT auth** with in-memory access token and silent refresh (Zustand + a single-flight axios interceptor)
 - **Triggers dashboard** — create/edit/delete with **Open-Meteo** city autocomplete
 - **Condition builder** — metric / operator / threshold, AND/OR logic, or a severe-weather preset
 - **Notifications history** with per-channel delivery status
@@ -20,10 +20,26 @@ create weather triggers for any city, and manage delivery over Telegram, Email a
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Zustand ·
 TanStack Query · react-hook-form + zod · axios · Vitest + Testing Library.
 
+## Rendering model
+
+This is a **client-rendered SPA that happens to be built with Next**, and that is a
+decision rather than an accident. Every screen behind the sign-in is per-user, live
+and non-cacheable, and the API is a separate origin whose session cookie is scoped
+to `/auth` — so a server component could not read it and a middleware guard could
+not see it. Server rendering would buy nothing here that it does not first have to
+be given.
+
+What Next is still used for: the public pages (landing, sign-in, sign-up) render
+on the server with their own metadata, the signed-in area is marked `noindex`, and
+`next.config.ts` sends the security headers. Moving to a real RSC data flow means
+first putting the API and the UI on one origin and widening the cookie's path —
+until then, the honest shape is the one implemented here.
+
 ## Security
 
 - The **refresh token** is never visible to JS — it lives in an `httpOnly` cookie set by the
-  API. Only the short-lived **access token** is held client-side.
+  API. The **access token** is held in memory only: never in `localStorage`, so it cannot be
+  read by injected script, and the session is restored from the cookie on load.
 - **Security headers** (CSP, `X-Frame-Options`, `Referrer-Policy`, HSTS, `nosniff`,
   `Permissions-Policy`) are sent for every route via `next.config.ts`.
 - All requests go through a hardened axios instance (`withCredentials`, timeout, refresh retry).
