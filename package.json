@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
     "gen:api": "openapi-typescript ../weather_notify/openapi.json -o src/lib/api-types.ts",
@@ -37,6 +39,7 @@
     "eslint-config-next": "^16.2.12",
     "jsdom": "^29.1.1",
     "openapi-typescript": "^7.13.0",
+    "prettier": "^3.9.6",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.9"

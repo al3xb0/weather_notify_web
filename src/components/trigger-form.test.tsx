@@ -21,16 +21,24 @@ vi.mock('@/lib/hooks', () => ({
     maxChannelsPerTrigger: 3,
   }),
 }));
-vi.mock('@/lib/api', () => ({ apiError: (e: unknown) => (e as Error).message }));
+vi.mock('@/lib/api', () => ({
+  apiError: (e: unknown) => (e as Error).message,
+}));
 vi.mock('@/components/city-autocomplete', () => ({
   CityAutocomplete: ({
     onSelect,
   }: {
-    onSelect: (g: { name: string; latitude: number; longitude: number }) => void;
+    onSelect: (g: {
+      name: string;
+      latitude: number;
+      longitude: number;
+    }) => void;
   }) => (
     <button
       type="button"
-      onClick={() => onSelect({ name: 'Berlin', latitude: 52.52, longitude: 13.4 })}
+      onClick={() =>
+        onSelect({ name: 'Berlin', latitude: 52.52, longitude: 13.4 })
+      }
     >
       pick-city
     </button>
@@ -42,7 +50,9 @@ describe('TriggerForm', () => {
 
   it('blocks submit and shows errors when name and city are missing', async () => {
     render(<TriggerForm onDone={vi.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: /create trigger/i }));
+    await userEvent.click(
+      screen.getByRole('button', { name: /create trigger/i }),
+    );
 
     expect(await screen.findByText('Name is required')).toBeInTheDocument();
     expect(screen.getByText('Pick a city from the list')).toBeInTheDocument();
@@ -51,7 +61,9 @@ describe('TriggerForm', () => {
 
   it('marks an invalid field and points it at its error message', async () => {
     render(<TriggerForm onDone={vi.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: /create trigger/i }));
+    await userEvent.click(
+      screen.getByRole('button', { name: /create trigger/i }),
+    );
 
     const name = await screen.findByLabelText('Name');
     expect(name).toHaveAttribute('aria-invalid', 'true');
@@ -70,13 +82,22 @@ describe('TriggerForm', () => {
     const onDone = vi.fn();
     render(<TriggerForm onDone={onDone} />);
 
-    await userEvent.type(screen.getByPlaceholderText(/Berlin heat wave/i), 'Heat');
+    await userEvent.type(
+      screen.getByPlaceholderText(/Berlin heat wave/i),
+      'Heat',
+    );
     await userEvent.click(screen.getByRole('button', { name: 'pick-city' }));
-    await userEvent.click(screen.getByRole('button', { name: /create trigger/i }));
+    await userEvent.click(
+      screen.getByRole('button', { name: /create trigger/i }),
+    );
 
     await waitFor(() => expect(createMutate).toHaveBeenCalledTimes(1));
     expect(createMutate).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'Heat', city: 'Berlin', latitude: 52.52 }),
+      expect.objectContaining({
+        name: 'Heat',
+        city: 'Berlin',
+        latitude: 52.52,
+      }),
     );
     await waitFor(() => expect(onDone).toHaveBeenCalled());
   });

@@ -22,7 +22,9 @@ vi.mock('@/lib/hooks', () => ({
   useRemovePushSubscription: () => hooks.remove,
 }));
 vi.mock('@/components/ui/toast', () => ({ useToast: () => toast }));
-vi.mock('@/lib/api', () => ({ apiError: (e: unknown) => (e as Error).message }));
+vi.mock('@/lib/api', () => ({
+  apiError: (e: unknown) => (e as Error).message,
+}));
 
 const SUBSCRIPTION = {
   endpoint: 'https://push/1',
@@ -102,7 +104,9 @@ describe('PushSection', () => {
       await screen.findByRole('button', { name: /disable push/i }),
     );
 
-    expect(hooks.remove.mutateAsync).toHaveBeenCalledWith(SUBSCRIPTION.endpoint);
+    expect(hooks.remove.mutateAsync).toHaveBeenCalledWith(
+      SUBSCRIPTION.endpoint,
+    );
     expect(
       await screen.findByRole('button', { name: /enable push/i }),
     ).toBeInTheDocument();

@@ -19,7 +19,12 @@ const PAGER_BUTTON =
 
 function BellIcon() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="h-12 w-12" aria-hidden="true">
+    <svg
+      viewBox="0 0 48 48"
+      fill="none"
+      className="h-12 w-12"
+      aria-hidden="true"
+    >
       <path
         d="M24 8a10 10 0 0 0-10 10v7.5l-2.5 3.75h25L34 25.5V18A10 10 0 0 0 24 8Z"
         stroke="currentColor"
@@ -129,9 +134,7 @@ export default function NotificationsPage() {
                     Page {page} of {totalPages}
                   </span>
                   <button
-                    onClick={() =>
-                      setPage((p) => Math.min(totalPages, p + 1))
-                    }
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={
                       page >= totalPages || notifications.isPlaceholderData
                     }

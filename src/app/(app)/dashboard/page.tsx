@@ -25,7 +25,12 @@ function PlusIcon() {
 
 function RadarIcon() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="h-12 w-12" aria-hidden="true">
+    <svg
+      viewBox="0 0 48 48"
+      fill="none"
+      className="h-12 w-12"
+      aria-hidden="true"
+    >
       <circle cx="24" cy="24" r="10" stroke="currentColor" strokeWidth="1.5" />
       <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1.5" />
       <path
@@ -127,7 +132,9 @@ export default function DashboardPage() {
         danger
         pending={clearAll.isPending}
         onConfirm={() =>
-          clearAll.mutate(undefined, { onSettled: () => setConfirmClear(false) })
+          clearAll.mutate(undefined, {
+            onSettled: () => setConfirmClear(false),
+          })
         }
         onCancel={() => setConfirmClear(false)}
       />

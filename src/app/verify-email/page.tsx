@@ -74,9 +74,10 @@ function VerifyEmailInner() {
         {status !== 'success' && (
           <div className="mt-5 space-y-2">
             <p className="text-xs text-ink-dim/70">
-              Didn&apos;t get it? Check your <strong className="font-medium text-ink-dim">spam</strong> or{' '}
-              <strong className="font-medium text-ink-dim">promotions</strong> folder — automated
-              emails often end up there.
+              Didn&apos;t get it? Check your{' '}
+              <strong className="font-medium text-ink-dim">spam</strong> or{' '}
+              <strong className="font-medium text-ink-dim">promotions</strong>{' '}
+              folder — automated emails often end up there.
             </p>
             <button
               onClick={doResend}
@@ -85,9 +86,7 @@ function VerifyEmailInner() {
             >
               {resend.isPending ? 'Sending…' : 'Resend verification email'}
             </button>
-            {resendMsg && (
-              <p className="text-xs text-ink-dim">{resendMsg}</p>
-            )}
+            {resendMsg && <p className="text-xs text-ink-dim">{resendMsg}</p>}
           </div>
         )}
 

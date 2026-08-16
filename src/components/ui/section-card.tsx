@@ -47,12 +47,7 @@ export function StatusBadge({ children }: { children: ReactNode }) {
 
 export function CheckIcon() {
   return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      className="h-4 w-4"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
       <path
         d="M3 8l3.5 3.5L13 5"
         stroke="currentColor"

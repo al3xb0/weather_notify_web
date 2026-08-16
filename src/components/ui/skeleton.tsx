@@ -49,7 +49,12 @@ export function SkeletonList({
 }) {
   const Item = variant === 'row' ? SkeletonRow : SkeletonCard;
   return (
-    <div role="status" aria-busy="true" aria-label={label} className="space-y-3">
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label={label}
+      className="space-y-3"
+    >
       {Array.from({ length: count }, (_, i) => (
         <Item key={i} className={className} />
       ))}

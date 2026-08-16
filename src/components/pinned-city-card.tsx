@@ -38,8 +38,19 @@ export function PinnedCityCard({
         aria-label="Unpin city"
         className="absolute right-2 top-2 text-ink-dim/40 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100 disabled:opacity-50"
       >
-        <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
-          <path d="M3 4h10M6.5 4V2.5h3V4M5 4l.5 9h5L11 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+        <svg
+          viewBox="0 0 16 16"
+          fill="none"
+          className="h-4 w-4"
+          aria-hidden="true"
+        >
+          <path
+            d="M3 4h10M6.5 4V2.5h3V4M5 4l.5 9h5L11 4"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
 

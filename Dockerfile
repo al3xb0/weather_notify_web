@@ -18,5 +18,11 @@ ENV PORT=3001
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+
+# Drop root, as the API's image already does. The server reads what it serves
+# and writes nothing, so an unprivileged user is enough — and a process that
+# never needs root should not be handed it.
+USER node
+
 EXPOSE 3001
 CMD ["node", "server.js"]

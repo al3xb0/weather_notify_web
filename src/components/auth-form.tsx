@@ -23,7 +23,12 @@ function WeatherBadge() {
         <span className="absolute h-16 w-16 rounded-full border border-sky-400/20 animate-radar" />
         <span className="absolute h-16 w-16 rounded-full border border-sky-400/15 animate-radar-2" />
         <div className="relative flex h-12 w-12 items-center justify-center rounded-xl border border-rim-bright bg-elevated">
-          <svg viewBox="0 0 28 28" fill="none" className="h-7 w-7" aria-hidden="true">
+          <svg
+            viewBox="0 0 28 28"
+            fill="none"
+            className="h-7 w-7"
+            aria-hidden="true"
+          >
             <path
               d="M5 20a5 5 0 0 1 4-9.8A6.5 6.5 0 1 1 22 19a4 4 0 0 1 0 3H5a4 4 0 0 1 0-2Z"
               fill="rgba(56,189,248,0.12)"
