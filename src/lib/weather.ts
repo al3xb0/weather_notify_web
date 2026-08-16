@@ -1,3 +1,5 @@
+import { api } from '@/lib/api';
+
 export interface CurrentWeather {
   time: string;
   temperature: number;
@@ -21,71 +23,20 @@ export interface WeatherReport {
   daily: DailyForecast[];
 }
 
-interface OpenMeteoForecast {
-  current?: {
-    time: string;
-    temperature_2m: number;
-    apparent_temperature: number;
-    relative_humidity_2m: number;
-    wind_speed_10m: number;
-    precipitation: number;
-    weather_code: number;
-  };
-  daily?: {
-    time: string[];
-    weather_code: number[];
-    temperature_2m_max: number[];
-    temperature_2m_min: number[];
-    precipitation_probability_max: (number | null)[];
-  };
-}
-
-const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
-const CURRENT_FIELDS =
-  'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,precipitation,weather_code';
-const DAILY_FIELDS =
-  'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max';
-
+/**
+ * The forecast, through our own API rather than straight to Open-Meteo — same
+ * reasoning as `searchCities`. The flattening that used to happen here now
+ * happens server-side, where it is cached per rounded location, so two viewers
+ * of the same city cost one upstream call rather than one each.
+ */
 export async function fetchWeather(
   latitude: number,
   longitude: number,
 ): Promise<WeatherReport> {
-  const params = new URLSearchParams({
-    latitude: String(latitude),
-    longitude: String(longitude),
-    current: CURRENT_FIELDS,
-    daily: DAILY_FIELDS,
-    timezone: 'auto',
-    forecast_days: '5',
+  const { data } = await api.get<WeatherReport>('/weather', {
+    params: { latitude, longitude },
   });
-  const res = await fetch(`${FORECAST_URL}?${params.toString()}`);
-  if (!res.ok) {
-    throw new Error('Failed to load weather');
-  }
-  const data = (await res.json()) as OpenMeteoForecast;
-  const c = data.current;
-  const d = data.daily;
-  if (!c || !d) {
-    throw new Error('Weather data unavailable');
-  }
-  return {
-    current: {
-      time: c.time,
-      temperature: c.temperature_2m,
-      apparentTemp: c.apparent_temperature,
-      humidity: c.relative_humidity_2m,
-      windSpeed: c.wind_speed_10m,
-      precipitation: c.precipitation,
-      weatherCode: c.weather_code,
-    },
-    daily: d.time.map((date, i) => ({
-      date,
-      weatherCode: d.weather_code[i],
-      tempMax: d.temperature_2m_max[i],
-      tempMin: d.temperature_2m_min[i],
-      precipitationProbability: d.precipitation_probability_max[i] ?? null,
-    })),
-  };
+  return data;
 }
 
 interface WeatherDescriptor {

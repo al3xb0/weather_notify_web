@@ -356,6 +356,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/geocode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GeocodeController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weather": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ForecastController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/stats": {
         parameters: {
             query?: never;
@@ -600,6 +632,33 @@ export interface components {
             createdAt: string;
         };
         CreatePinnedCityDto: Record<string, never>;
+        GeocodeResultDto: {
+            name: string;
+            country?: Record<string, never> | null;
+            admin1?: Record<string, never> | null;
+            latitude: number;
+            longitude: number;
+        };
+        CurrentWeatherDto: {
+            time: string;
+            temperature: number;
+            apparentTemp: number;
+            humidity: number;
+            windSpeed: number;
+            precipitation: number;
+            weatherCode: number;
+        };
+        DailyForecastDto: {
+            date: string;
+            weatherCode: number;
+            tempMax: number;
+            tempMin: number;
+            precipitationProbability?: Record<string, never> | null;
+        };
+        ForecastResponseDto: {
+            current: components["schemas"]["CurrentWeatherDto"];
+            daily: components["schemas"]["DailyForecastDto"][];
+        };
         AdminStatsDto: {
             users: number;
             verifiedUsers: number;
@@ -1331,6 +1390,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IdResultDto"];
+                };
+            };
+        };
+    };
+    GeocodeController_search: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeocodeResultDto"][];
+                };
+            };
+        };
+    };
+    ForecastController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForecastResponseDto"];
                 };
             };
         };

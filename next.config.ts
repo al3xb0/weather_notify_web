@@ -10,10 +10,10 @@ const isDev = process.env.NODE_ENV !== 'production';
 const scriptSrc = ["'self'", "'unsafe-inline'", isDev ? "'unsafe-eval'" : '']
   .filter(Boolean)
   .join(' ');
-// The UI calls Open-Meteo directly for weather and city geocoding
-// (api.open-meteo.com, geocoding-api.open-meteo.com).
-const OPEN_METEO = 'https://*.open-meteo.com';
-const connectSrc = ["'self'", apiUrl, OPEN_METEO, isDev ? 'ws:' : '']
+// Weather and city geocoding go through our own API now, so the browser has no
+// reason to reach any third party — and the CSP says so rather than leaving a
+// wildcard open for an origin nothing calls.
+const connectSrc = ["'self'", apiUrl, isDev ? 'ws:' : '']
   .filter(Boolean)
   .join(' ');
 

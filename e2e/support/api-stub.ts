@@ -115,19 +115,11 @@ export async function stubApi(
         return json(route, { items: [], total: 0, page: 1, pageSize: 20 });
       case 'GET /pinned-cities':
         return json(route, []);
-      default:
-        return json(route, {}, 404);
-    }
-  });
-
-  // The city search goes straight to Open-Meteo from the browser, so it needs
-  // stubbing too or the test depends on a third party being up.
-  await page.route('https://geocoding-api.open-meteo.com/**', (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        results: [
+      // City search is proxied by the API rather than called from the browser,
+      // so it is stubbed here with everything else — and the CSP no longer
+      // allows a third-party origin the app could fall back to.
+      case 'GET /geocode':
+        return json(route, [
           {
             name: 'Berlin',
             country: 'Germany',
@@ -135,8 +127,9 @@ export async function stubApi(
             latitude: 52.52,
             longitude: 13.405,
           },
-        ],
-      }),
-    }),
-  );
+        ]);
+      default:
+        return json(route, {}, 404);
+    }
+  });
 }
