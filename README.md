@@ -93,6 +93,18 @@ Deploy to **Vercel**: import the repo, set `NEXT_PUBLIC_API_URL` and
 `NEXT_PUBLIC_VAPID_PUBLIC_KEY` in project settings, and ship. A `Dockerfile`
 (Next.js standalone output) is included for self-hosting alongside the backend.
 
+## Forking this
+
+MIT licensed — see [LICENSE](LICENSE). The backend repository carries the
+architecture decisions, the contributing guide and a walkthrough of what to
+change to point the whole system at a different signal than weather
+(`docs/using-this-as-a-template.md`).
+
+One thing to change here after forking: CI checks out the API repository to
+verify the generated client types still match `openapi.json`. Point it at your
+own fork with the **`API_REPO`** repository variable (Settings → Secrets and
+variables → Actions → Variables) rather than editing the workflow.
+
 ---
 
 Created by [Aliaksei Konyshau](https://www.al-gres.com/).

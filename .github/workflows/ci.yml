@@ -16,9 +16,14 @@ jobs:
       # actions/checkout cannot write outside the workspace, so the API
       # repository lands in ./api-spec rather than the ../weather_notify the
       # local gen:api script expects. Only the document is needed.
+      #
+      # The repository is a variable so a fork does not have to edit this file
+      # to get a green build: set the API_REPO variable (Settings → Secrets and
+      # variables → Actions → Variables) to your own fork. The default is the
+      # upstream one.
       - uses: actions/checkout@v4
         with:
-          repository: al3xb0/weather_notify
+          repository: ${{ vars.API_REPO || 'al3xb0/weather_notify' }}
           path: api-spec
           sparse-checkout: openapi.json
           sparse-checkout-cone-mode: false
