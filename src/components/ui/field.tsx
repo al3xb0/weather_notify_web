@@ -3,10 +3,10 @@
 import { useId, type ReactNode } from 'react';
 
 export const inputClass =
-  'w-full rounded-xl border border-rim bg-base px-3.5 py-2.5 text-sm text-ink placeholder-ink-dim/50 outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10 aria-invalid:border-red-500/60';
+  'w-full rounded-xl border border-rim bg-surface px-3.5 py-2.5 text-sm text-ink placeholder-ink-dim/50 outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10 aria-invalid:border-red-500/60';
 
 export const selectClass =
-  'w-full appearance-none rounded-xl border border-rim bg-base py-2.5 pl-3.5 pr-8 text-sm text-ink outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10 aria-invalid:border-red-500/60';
+  'w-full appearance-none rounded-xl border border-rim bg-surface py-2.5 pl-3.5 pr-8 text-sm text-ink outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10 aria-invalid:border-red-500/60';
 
 export interface FieldSlots {
   id: string;

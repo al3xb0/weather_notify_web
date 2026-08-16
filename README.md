@@ -5,6 +5,23 @@ create weather triggers for any city, and manage delivery over Telegram, Email a
 
 > Backend (NestJS microservices) lives in a separate repository: `weather_notify`.
 
+![Triggers dashboard](docs/screenshots/dashboard.png)
+
+<details>
+<summary>More screens — trigger builder, delivery history, forecast, settings</summary>
+
+![Trigger builder](docs/screenshots/trigger-form.png)
+![Notification history](docs/screenshots/notifications.png)
+![Weather](docs/screenshots/weather.png)
+![Settings](docs/screenshots/settings.png)
+
+</details>
+
+Captured with `npm run screenshots`, which drives the production build against
+a stubbed API — same cities, same timestamps and same delivery outcomes on
+every run, so the images do not depend on whatever a live database happens to
+hold.
+
 ## Features
 
 - **JWT auth** with in-memory access token and silent refresh (Zustand + a single-flight axios interceptor)

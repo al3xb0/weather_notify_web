@@ -6,7 +6,7 @@ import { describeWeather } from '@/lib/weather';
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-rim bg-base px-3 py-2.5">
+    <div className="rounded-xl border border-rim bg-surface px-3 py-2.5">
       <p className="text-xs text-ink-dim/70">{label}</p>
       <p className="mt-0.5 font-heading text-sm font-semibold text-ink">
         {value}
@@ -83,7 +83,7 @@ export function WeatherDetail({
             return (
               <div
                 key={d.date}
-                className="flex flex-col items-center gap-1 rounded-xl border border-rim bg-base px-1 py-2.5 text-center"
+                className="flex flex-col items-center gap-1 rounded-xl border border-rim bg-surface px-1 py-2.5 text-center"
               >
                 <span className="text-xs font-medium text-ink-dim">
                   {dayLabel(d.date, i)}

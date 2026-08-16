@@ -171,7 +171,7 @@ function EmailVerificationBanner() {
 /** The header and one content block, in the layout they are about to occupy. */
 function AppShellSkeleton() {
   return (
-    <div className="min-h-screen bg-base">
+    <div className="min-h-screen bg-surface">
       <header className="sticky top-0 z-50 border-b border-rim bg-canvas/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2.5">
@@ -245,7 +245,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-base">
+    <div className="min-h-screen bg-surface">
       <a
         href="#main"
         className="skip-link focus-ring rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white"

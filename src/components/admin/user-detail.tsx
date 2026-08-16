@@ -152,7 +152,7 @@ function UserDetailBody({
             {user.triggers.map((t) => (
               <li
                 key={t.id}
-                className="flex items-start justify-between gap-3 rounded-xl border border-rim bg-base p-3"
+                className="flex items-start justify-between gap-3 rounded-xl border border-rim bg-surface p-3"
               >
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 text-sm font-medium text-ink">

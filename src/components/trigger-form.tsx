@@ -106,7 +106,8 @@ export function TriggerForm({
       className="rounded-2xl border border-rim-bright bg-card p-6 shadow-xl shadow-black/30"
     >
       <div className="mb-5 flex items-center justify-between">
-        <h2 className="font-heading text-base font-semibold">
+        {/* Explicit colour like every other panel heading. */}
+        <h2 className="font-heading text-base font-semibold text-ink">
           {initial ? 'Edit trigger' : 'New trigger'}
         </h2>
         <button
@@ -247,7 +248,7 @@ export function TriggerForm({
               aria-invalid={invalid}
               aria-describedby={describedBy}
               {...register('cooldownMin', { valueAsNumber: true })}
-              className="w-28 rounded-xl border border-rim bg-base px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10 aria-invalid:border-red-500/60"
+              className="w-28 rounded-xl border border-rim bg-surface px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10 aria-invalid:border-red-500/60"
             />
           )}
         </Field>

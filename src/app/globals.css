@@ -8,7 +8,14 @@
 
   /* Dark surface stack — blue-tinted navy */
   --color-canvas: #05080e;
-  --color-base: #080c18;
+  /*
+    Named `surface`, not `base`: a `--color-base` token makes Tailwind generate
+    a `text-base` colour utility that collides with the built-in `text-base`
+    font size. Anything written as `text-base` without an explicit colour then
+    renders in the page background colour — which is how the trigger form's
+    heading and the "C" in the weather panel became almost invisible.
+  */
+  --color-surface: #080c18;
   --color-card: #0c1522;
   --color-elevated: #10192c;
   --color-overlay: #162236;
