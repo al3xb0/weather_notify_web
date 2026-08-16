@@ -8,6 +8,10 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
+    // Vitest's default glob would collect the Playwright specs too, and they
+    // fail in confusing ways under jsdom — they need a browser, not a DOM
+    // shim. `npm run test:e2e` is what runs those.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
   resolve: {
     alias: {

@@ -69,7 +69,23 @@ for `docker compose up`.
 
 ```bash
 npm test          # Vitest unit/component tests (auth form, trigger form, api client)
+npm run test:e2e  # Playwright, in a real browser against the production build
 ```
+
+Two layers, because jsdom cannot show whether the app boots. The Vitest suites
+cover validation, aria wiring and the axios client's refresh logic — the things
+that are pure enough to assert without a browser.
+
+Playwright covers what only a browser executes: routing, hydration, the session
+bootstrap that runs before the first paint, and the redirect a guarded route
+performs once it finishes. It runs against `next build` output rather than the
+dev server, since that is what ships.
+
+The API is stubbed per test with `page.route`, including the CORS headers a
+cross-origin call actually needs — the backend proves its own behaviour against
+a live Postgres in its repository, and what is unproven here is that this app
+drives it correctly and renders what comes back. The Open-Meteo geocoder is
+stubbed too, so the suite does not depend on a third party being up.
 
 ## Deployment
 
