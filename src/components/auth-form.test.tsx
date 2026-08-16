@@ -7,7 +7,9 @@ import { login } from '@/lib/hooks';
 const push = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 vi.mock('@/lib/hooks', () => ({ login: vi.fn(), register: vi.fn() }));
-vi.mock('@/lib/api', () => ({ apiError: (e: unknown) => (e as Error).message }));
+vi.mock('@/lib/api', () => ({
+  apiError: (e: unknown) => (e as Error).message,
+}));
 
 describe('AuthForm', () => {
   beforeEach(() => vi.clearAllMocks());
@@ -25,7 +27,10 @@ describe('AuthForm', () => {
     vi.mocked(login).mockResolvedValueOnce(undefined);
     render(<AuthForm mode="login" />);
 
-    await userEvent.type(screen.getByPlaceholderText('you@example.com'), 'a@b.com');
+    await userEvent.type(
+      screen.getByPlaceholderText('you@example.com'),
+      'a@b.com',
+    );
     await userEvent.type(screen.getByPlaceholderText('••••••••'), 'password1');
     await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
@@ -52,7 +57,10 @@ describe('AuthForm', () => {
     vi.mocked(login).mockRejectedValueOnce(new Error('Invalid credentials'));
     render(<AuthForm mode="login" />);
 
-    await userEvent.type(screen.getByPlaceholderText('you@example.com'), 'a@b.com');
+    await userEvent.type(
+      screen.getByPlaceholderText('you@example.com'),
+      'a@b.com',
+    );
     await userEvent.type(screen.getByPlaceholderText('••••••••'), 'password1');
     await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 

@@ -8,7 +8,9 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-rim bg-base px-3 py-2.5">
       <p className="text-xs text-ink-dim/70">{label}</p>
-      <p className="mt-0.5 font-heading text-sm font-semibold text-ink">{value}</p>
+      <p className="mt-0.5 font-heading text-sm font-semibold text-ink">
+        {value}
+      </p>
     </div>
   );
 }
@@ -65,7 +67,10 @@ export function WeatherDetail({
         <Metric label="Humidity" value={`${Math.round(current.humidity)}%`} />
         <Metric label="Wind" value={`${Math.round(current.windSpeed)} km/h`} />
         <Metric label="Precipitation" value={`${current.precipitation} mm`} />
-        <Metric label="Feels like" value={`${Math.round(current.apparentTemp)}°C`} />
+        <Metric
+          label="Feels like"
+          value={`${Math.round(current.apparentTemp)}°C`}
+        />
       </div>
 
       <div>
@@ -83,7 +88,11 @@ export function WeatherDetail({
                 <span className="text-xs font-medium text-ink-dim">
                   {dayLabel(d.date, i)}
                 </span>
-                <span className="text-xl leading-none" aria-hidden="true" title={dc.label}>
+                <span
+                  className="text-xl leading-none"
+                  aria-hidden="true"
+                  title={dc.label}
+                >
                   {dc.emoji}
                 </span>
                 <span className="text-xs font-semibold text-ink">
@@ -92,11 +101,12 @@ export function WeatherDetail({
                 <span className="text-xs text-ink-dim/70">
                   {Math.round(d.tempMin)}°
                 </span>
-                {d.precipitationProbability != null && d.precipitationProbability > 0 && (
-                  <span className="text-[10px] text-sky-400">
-                    {d.precipitationProbability}%
-                  </span>
-                )}
+                {d.precipitationProbability != null &&
+                  d.precipitationProbability > 0 && (
+                    <span className="text-[10px] text-sky-400">
+                      {d.precipitationProbability}%
+                    </span>
+                  )}
               </div>
             );
           })}

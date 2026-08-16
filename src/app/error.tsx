@@ -21,7 +21,12 @@ export default function Error({
         <span className="absolute h-24 w-24 rounded-full border border-amber-400/25 animate-radar" />
         <span className="absolute h-24 w-24 rounded-full border border-amber-400/20 animate-radar-2" />
         <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl border border-rim-bright bg-elevated/80 shadow-lg">
-          <svg viewBox="0 0 48 48" fill="none" className="h-12 w-12" aria-hidden="true">
+          <svg
+            viewBox="0 0 48 48"
+            fill="none"
+            className="h-12 w-12"
+            aria-hidden="true"
+          >
             <path
               d="M9 32a8 8 0 0 1 5.7-13.6A10 10 0 1 1 36 30a6 6 0 0 1 0 6H9a6 6 0 0 1 0-4Z"
               fill="rgba(251,191,36,0.12)"

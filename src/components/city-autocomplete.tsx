@@ -47,8 +47,19 @@ export function CityAutocomplete({
           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-dim"
           aria-hidden="true"
         >
-          <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.3" />
-          <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+          <circle
+            cx="7"
+            cy="7"
+            r="4.5"
+            stroke="currentColor"
+            strokeWidth="1.3"
+          />
+          <path
+            d="M11 11l3 3"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+          />
         </svg>
         <input
           id={inputId}
@@ -74,7 +85,12 @@ export function CityAutocomplete({
       </div>
 
       {open && (
-        <ul id={listId} role="listbox" aria-label="City suggestions" className="absolute z-20 mt-1.5 max-h-52 w-full overflow-y-auto overscroll-contain rounded-xl border border-rim-bright bg-elevated shadow-2xl shadow-black/50">
+        <ul
+          id={listId}
+          role="listbox"
+          aria-label="City suggestions"
+          className="absolute z-20 mt-1.5 max-h-52 w-full overflow-y-auto overscroll-contain rounded-xl border border-rim-bright bg-elevated shadow-2xl shadow-black/50"
+        >
           {results.map((r, i) => (
             <li key={`${r.latitude}-${r.longitude}-${i}`} role="none">
               <button
@@ -91,7 +107,8 @@ export function CityAutocomplete({
               >
                 <span className="font-medium text-ink">{r.name}</span>
                 <span className="text-xs text-ink-dim">
-                  {r.admin1 ? `${r.admin1}, ` : ''}{r.country}
+                  {r.admin1 ? `${r.admin1}, ` : ''}
+                  {r.country}
                 </span>
               </button>
             </li>

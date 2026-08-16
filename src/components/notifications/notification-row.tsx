@@ -1,9 +1,18 @@
 import type { ReactElement } from 'react';
-import { CHANNEL_LABELS, type NotifStatus, type NotificationItem } from '@/lib/types';
+import {
+  CHANNEL_LABELS,
+  type NotifStatus,
+  type NotificationItem,
+} from '@/lib/types';
 
 const CHANNEL_ICONS: Record<string, ReactElement> = {
   TELEGRAM: (
-    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      className="h-3.5 w-3.5"
+      aria-hidden="true"
+    >
       <path
         d="M14 2 L6 9 M14 2 L10 14 L6 9 L2 7 L14 2Z"
         stroke="currentColor"
@@ -13,13 +22,36 @@ const CHANNEL_ICONS: Record<string, ReactElement> = {
     </svg>
   ),
   EMAIL: (
-    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
-      <rect x="2" y="4" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M2 4.5l6 5 6-5" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      className="h-3.5 w-3.5"
+      aria-hidden="true"
+    >
+      <rect
+        x="2"
+        y="4"
+        width="12"
+        height="9"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <path
+        d="M2 4.5l6 5 6-5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
     </svg>
   ),
   WEB_PUSH: (
-    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      className="h-3.5 w-3.5"
+      aria-hidden="true"
+    >
       <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3" />
       <path
         d="M8 1v1M8 14v1M1 8h1M14 8h1M3.2 3.2l.7.7M12.1 12.1l.7.7M12.1 3.2l-.7.7M3.2 12.1l.7.7"
@@ -67,7 +99,10 @@ export function NotificationRow({
           <p className="truncate text-sm font-medium text-ink">
             {title}
             {n.payload?.city && (
-              <span className="font-normal text-ink-dim"> · {n.payload.city}</span>
+              <span className="font-normal text-ink-dim">
+                {' '}
+                · {n.payload.city}
+              </span>
             )}
           </p>
           <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-dim">
@@ -99,7 +134,12 @@ export function NotificationRow({
           aria-label={`Delete notification for ${title}`}
           className="focus-ring text-ink-dim transition-colors hover:text-red-400 disabled:opacity-50"
         >
-          <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            className="h-4 w-4"
+            aria-hidden="true"
+          >
             <path
               d="M3 4h10M6.5 4V2.5h3V4M5 4l.5 9h5L11 4"
               stroke="currentColor"

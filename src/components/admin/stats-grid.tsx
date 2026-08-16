@@ -21,9 +21,17 @@ export function StatsGrid() {
     <AsyncBoundary
       query={stats}
       skeleton={
-        <div role="status" aria-busy="true" aria-label="Loading stats" className={GRID}>
+        <div
+          role="status"
+          aria-busy="true"
+          aria-label="Loading stats"
+          className={GRID}
+        >
           {Array.from({ length: 8 }, (_, i) => (
-            <Skeleton key={i} className="h-20 rounded-2xl border border-rim bg-card/50" />
+            <Skeleton
+              key={i}
+              className="h-20 rounded-2xl border border-rim bg-card/50"
+            />
           ))}
         </div>
       }

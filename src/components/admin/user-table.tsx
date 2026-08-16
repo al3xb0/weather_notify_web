@@ -26,9 +26,7 @@ export function UserTable({
   return (
     <AsyncBoundary
       query={users}
-      skeleton={
-        <SkeletonList count={5} variant="row" label="Loading users" />
-      }
+      skeleton={<SkeletonList count={5} variant="row" label="Loading users" />}
       isEmpty={(p: Paginated<AdminUserListItem>) => p.items.length === 0}
       empty={<EmptyState title="No users" />}
     >

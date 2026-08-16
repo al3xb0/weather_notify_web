@@ -32,6 +32,9 @@ jobs:
       # a diff, so no other step in this job would ever fail because of one.
       - run: npm audit --audit-level=high
       - run: npm run lint
+      # The API repository has enforced formatting since it had a pre-commit
+      # hook; this side had neither, and the style drifted file by file.
+      - run: npm run format:check
       - run: npm run test
 
       # The API's own CI proves openapi.json matches its controllers; this

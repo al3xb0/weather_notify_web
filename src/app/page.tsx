@@ -29,10 +29,20 @@ function WeatherIcon() {
 const FEATURES = [
   {
     icon: (
-      <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+      <svg
+        viewBox="0 0 20 20"
+        fill="none"
+        className="h-5 w-5"
+        aria-hidden="true"
+      >
         <circle cx="10" cy="10" r="3" fill="currentColor" />
         <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M10 2v2M10 16v2M2 10h2M16 10h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path
+          d="M10 2v2M10 16v2M2 10h2M16 10h2"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
       </svg>
     ),
     title: 'Smart Triggers',
@@ -40,9 +50,23 @@ const FEATURES = [
   },
   {
     icon: (
-      <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
-        <path d="M4 4h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M3 5l7 6 7-6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <svg
+        viewBox="0 0 20 20"
+        fill="none"
+        className="h-5 w-5"
+        aria-hidden="true"
+      >
+        <path
+          d="M4 4h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M3 5l7 6 7-6"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
       </svg>
     ),
     title: 'Multi-Channel',
@@ -50,9 +74,24 @@ const FEATURES = [
   },
   {
     icon: (
-      <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
-        <path d="M10 3a7 7 0 1 0 0 14A7 7 0 0 0 10 3Z" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M10 6v4l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <svg
+        viewBox="0 0 20 20"
+        fill="none"
+        className="h-5 w-5"
+        aria-hidden="true"
+      >
+        <path
+          d="M10 3a7 7 0 1 0 0 14A7 7 0 0 0 10 3Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M10 6v4l2.5 2.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     ),
     title: 'Always Watching',
@@ -75,9 +114,7 @@ export default function Home() {
           </div>
         </div>
 
-        <h1
-          className="font-heading text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl animate-fade-up delay-75"
-        >
+        <h1 className="font-heading text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl animate-fade-up delay-75">
           <span className="text-shimmer">Weather Notify</span>
         </h1>
 

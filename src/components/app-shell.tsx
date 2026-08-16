@@ -14,7 +14,12 @@ const NAV = [
     href: '/dashboard',
     label: 'Triggers',
     icon: (
-      <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+      <svg
+        viewBox="0 0 16 16"
+        fill="none"
+        className="h-4 w-4"
+        aria-hidden="true"
+      >
         <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
         <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
       </svg>
@@ -24,9 +29,19 @@ const NAV = [
     href: '/weather',
     label: 'Weather',
     icon: (
-      <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+      <svg
+        viewBox="0 0 16 16"
+        fill="none"
+        className="h-4 w-4"
+        aria-hidden="true"
+      >
         <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M12.6 3.4l-1 1M4.4 11.6l-1 1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        <path
+          d="M8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M12.6 3.4l-1 1M4.4 11.6l-1 1"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+        />
       </svg>
     ),
   },
@@ -34,9 +49,23 @@ const NAV = [
     href: '/notifications',
     label: 'Notifications',
     icon: (
-      <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
-        <path d="M8 2a4 4 0 0 0-4 4v3l-1 1.5h10L12 9V6a4 4 0 0 0-4-4Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M6.5 13a1.5 1.5 0 0 0 3 0" stroke="currentColor" strokeWidth="1.5" />
+      <svg
+        viewBox="0 0 16 16"
+        fill="none"
+        className="h-4 w-4"
+        aria-hidden="true"
+      >
+        <path
+          d="M8 2a4 4 0 0 0-4 4v3l-1 1.5h10L12 9V6a4 4 0 0 0-4-4Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M6.5 13a1.5 1.5 0 0 0 3 0"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
   },
@@ -44,9 +73,19 @@ const NAV = [
     href: '/settings',
     label: 'Settings',
     icon: (
-      <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+      <svg
+        viewBox="0 0 16 16"
+        fill="none"
+        className="h-4 w-4"
+        aria-hidden="true"
+      >
         <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2M3.3 3.3l.85.85M11.85 11.85l.85.85M3.3 12.7l.85-.85M11.85 4.15l.85-.85" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        <path
+          d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2M3.3 3.3l.85.85M11.85 11.85l.85.85M3.3 12.7l.85-.85M11.85 4.15l.85-.85"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+        />
       </svg>
     ),
   },
@@ -57,8 +96,19 @@ const ADMIN_NAV = {
   label: 'Admin',
   icon: (
     <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
-      <path d="M8 1.5l5 2v4c0 3-2.2 5-5 6.5-2.8-1.5-5-3.5-5-6.5v-4l5-2Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M6 8l1.5 1.5L10.5 6.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M8 1.5l5 2v4c0 3-2.2 5-5 6.5-2.8-1.5-5-3.5-5-6.5v-4l5-2Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 8l1.5 1.5L10.5 6.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   ),
 };
@@ -144,21 +194,35 @@ function HamburgerIcon({ open }: { open: boolean }) {
   return (
     <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
       {open ? (
-        <path d="M4 4l12 12M16 4 L4 16" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+        <path
+          d="M4 4l12 12M16 4 L4 16"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+        />
       ) : (
-        <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+        <path
+          d="M3 5h14M3 10h14M3 15h14"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+        />
       )}
     </svg>
   );
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const router   = useRouter();
+  const router = useRouter();
   const pathname = usePathname();
-  const status   = useAuthBootstrap();
+  const status = useAuthBootstrap();
   const storedEmail = useAuthStore((s) => s.email);
   const { data: profile } = useProfile(status === 'authenticated');
-  const [menuOpen, setMenuOpen] = useState(false);
+  // The menu belongs to the route it was opened on, so navigating closes it
+  // without an effect watching the path — and without the setTimeout that
+  // effect needed to get its setState past the lint rule.
+  const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
+  const menuOpen = menuOpenFor === pathname;
 
   const navItems = profile?.role === 'ADMIN' ? [...NAV, ADMIN_NAV] : NAV;
   // Known immediately after a sign-in, and only after the profile lands when
@@ -168,13 +232,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (status === 'anonymous') router.replace('/login');
   }, [status, router]);
-
-  // Close mobile menu on route change — runs as layout effect to avoid
-  // a visible flash of the open menu before navigation completes
-  useEffect(() => {
-    const id = setTimeout(() => setMenuOpen(false), 0);
-    return () => clearTimeout(id);
-  }, [pathname]);
 
   // Restoring the session costs a round-trip on every load. Showing the frame
   // it will land in beats a blank screen; `anonymous` renders nothing because
@@ -240,7 +297,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
             {/* Mobile hamburger */}
             <button
-              onClick={() => setMenuOpen((o) => !o)}
+              onClick={() => setMenuOpenFor(menuOpen ? null : pathname)}
               className="flex items-center justify-center rounded-lg border border-rim p-1.5 text-ink-dim transition-colors hover:bg-elevated hover:text-ink sm:hidden"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             >
@@ -271,7 +328,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 );
               })}
               <div className="mt-2 border-t border-rim pt-2 pb-1">
-                <p className="px-3 py-1 text-xs text-ink-dim truncate">{email}</p>
+                <p className="px-3 py-1 text-xs text-ink-dim truncate">
+                  {email}
+                </p>
               </div>
             </nav>
           </div>

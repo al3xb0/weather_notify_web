@@ -17,7 +17,13 @@ function make401(config: InternalAxiosRequestConfig): AxiosError {
     headers: {},
     config,
   };
-  return new AxiosError('Unauthorized', 'ERR_BAD_REQUEST', config, undefined, response);
+  return new AxiosError(
+    'Unauthorized',
+    'ERR_BAD_REQUEST',
+    config,
+    undefined,
+    response,
+  );
 }
 
 describe('apiError', () => {
@@ -51,12 +57,21 @@ describe('refresh interceptor', () => {
 
     api.defaults.adapter = async (config) => {
       if ((config as RetryConfig)._retry) {
-        return { data: 'ok', status: 200, statusText: 'OK', headers: {}, config };
+        return {
+          data: 'ok',
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config,
+        };
       }
       throw make401(config);
     };
 
-    const [a, b] = await Promise.all([api.get('/triggers'), api.get('/triggers')]);
+    const [a, b] = await Promise.all([
+      api.get('/triggers'),
+      api.get('/triggers'),
+    ]);
 
     expect(a.data).toBe('ok');
     expect(b.data).toBe('ok');
@@ -71,7 +86,9 @@ describe('refresh interceptor', () => {
       throw make401(config);
     };
 
-    await expect(api.post('/auth/login', {})).rejects.toBeInstanceOf(AxiosError);
+    await expect(api.post('/auth/login', {})).rejects.toBeInstanceOf(
+      AxiosError,
+    );
     expect(post).not.toHaveBeenCalled();
   });
 });

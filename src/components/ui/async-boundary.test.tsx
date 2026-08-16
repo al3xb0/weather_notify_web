@@ -3,7 +3,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AsyncBoundary } from './async-boundary';
 
-vi.mock('@/lib/api', () => ({ apiError: (e: unknown) => (e as Error).message }));
+vi.mock('@/lib/api', () => ({
+  apiError: (e: unknown) => (e as Error).message,
+}));
 
 type Query<T> = Parameters<typeof AsyncBoundary<T>>[0]['query'];
 
@@ -46,7 +48,11 @@ describe('AsyncBoundary', () => {
     const refetch = vi.fn();
     render(
       <AsyncBoundary
-        query={query<string[]>({ isError: true, error: new Error('boom'), refetch })}
+        query={query<string[]>({
+          isError: true,
+          error: new Error('boom'),
+          refetch,
+        })}
       >
         {() => <p>data</p>}
       </AsyncBoundary>,

@@ -57,10 +57,10 @@ for `docker compose up`.
 
 ## Environment
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_API_URL` | Core API base URL (also added to the CSP `connect-src`) |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | VAPID public key for Web Push (must match the backend) |
+| Variable                       | Description                                             |
+| ------------------------------ | ------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`          | Core API base URL (also added to the CSP `connect-src`) |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | VAPID public key for Web Push (must match the backend)  |
 
 > `NEXT_PUBLIC_*` vars are inlined at **build time** — set them before `next build`
 > (in Vercel project settings, or as Docker build args for self-hosting).
