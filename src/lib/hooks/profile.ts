@@ -5,13 +5,18 @@ import { api } from '@/lib/api';
 import type { Profile } from '@/lib/types';
 import { freshness, queryKeys } from './query-keys';
 
-export function useProfile() {
+/**
+ * `enabled` lets the app shell hold the request until the session has been
+ * restored, so a reload does not spend a guaranteed 401 to discover it.
+ */
+export function useProfile(enabled = true) {
   return useQuery({
     queryKey: queryKeys.profile,
     queryFn: async () => {
       const { data } = await api.get<Profile>('/users/me');
       return data;
     },
+    enabled,
     ...freshness.profile,
   });
 }
