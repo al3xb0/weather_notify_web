@@ -6,6 +6,7 @@ import { SkeletonList } from '@/components/ui/skeleton';
 import { TelegramSection } from '@/components/settings/telegram-section';
 import { PushSection } from '@/components/settings/push-section';
 import { QuietHoursSection } from '@/components/settings/quiet-hours-section';
+import { DangerZoneSection } from '@/components/settings/danger-zone-section';
 
 export default function SettingsPage() {
   const profile = useProfile();
@@ -30,6 +31,7 @@ export default function SettingsPage() {
             <TelegramSection profile={me} />
             <PushSection />
             <QuietHoursSection profile={me} />
+            <DangerZoneSection />
           </div>
         )}
       </AsyncBoundary>

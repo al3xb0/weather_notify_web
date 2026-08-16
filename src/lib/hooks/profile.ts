@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
 import type { Profile } from '@/lib/types';
 import { freshness, queryKeys } from './query-keys';
 
@@ -74,6 +75,19 @@ export function useRemovePushSubscription() {
   return useMutation({
     mutationFn: async (endpoint: string) => {
       await api.delete('/users/me/push', { data: { endpoint } });
+    },
+  });
+}
+
+export function useDeleteAccount() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (password: string) => {
+      await api.delete('/users/me', { data: { password } });
+      useAuthStore.getState().clear();
+      // Nothing in the cache belongs to anyone now, and leaving it would let a
+      // subsequent sign-in briefly render the deleted account's data.
+      qc.clear();
     },
   });
 }

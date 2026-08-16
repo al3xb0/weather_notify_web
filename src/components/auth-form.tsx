@@ -127,6 +127,17 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               )}
             </Field>
 
+            {mode === 'login' && (
+              <p className="text-right text-xs">
+                <Link
+                  href="/forgot-password"
+                  className="font-medium text-sky-400 transition-colors hover:text-sky-300"
+                >
+                  Forgot password?
+                </Link>
+              </p>
+            )}
+
             {/* Global error */}
             {error && (
               <div
