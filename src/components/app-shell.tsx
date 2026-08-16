@@ -218,7 +218,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const status = useAuthBootstrap();
   const storedEmail = useAuthStore((s) => s.email);
   const { data: profile } = useProfile(status === 'authenticated');
-  const [menuOpen, setMenuOpen] = useState(false);
+  // The menu belongs to the route it was opened on, so navigating closes it
+  // without an effect watching the path — and without the setTimeout that
+  // effect needed to get its setState past the lint rule.
+  const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
+  const menuOpen = menuOpenFor === pathname;
 
   const navItems = profile?.role === 'ADMIN' ? [...NAV, ADMIN_NAV] : NAV;
   // Known immediately after a sign-in, and only after the profile lands when
@@ -228,13 +232,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (status === 'anonymous') router.replace('/login');
   }, [status, router]);
-
-  // Close mobile menu on route change — runs as layout effect to avoid
-  // a visible flash of the open menu before navigation completes
-  useEffect(() => {
-    const id = setTimeout(() => setMenuOpen(false), 0);
-    return () => clearTimeout(id);
-  }, [pathname]);
 
   // Restoring the session costs a round-trip on every load. Showing the frame
   // it will land in beats a blank screen; `anonymous` renders nothing because
@@ -300,7 +297,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
             {/* Mobile hamburger */}
             <button
-              onClick={() => setMenuOpen((o) => !o)}
+              onClick={() => setMenuOpenFor(menuOpen ? null : pathname)}
               className="flex items-center justify-center rounded-lg border border-rim p-1.5 text-ink-dim transition-colors hover:bg-elevated hover:text-ink sm:hidden"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             >
