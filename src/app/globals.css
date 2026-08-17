@@ -35,26 +35,110 @@
   --color-success-bg: #032b1c;
 }
 
-/* Pinned to dark — no OS media-query override */
+/*
+  ── Light theme ───────────────────────────────────────────
+  The tokens above are the dark values, so dark is what renders if none of the
+  rules below match. Only the tokens change: every component keeps referring to
+  `bg-card` and `text-ink`, which is the whole point of naming them by role
+  rather than by colour.
+
+  Three states, in the order CSS resolves them:
+    1. no attribute + OS prefers light  → light
+    2. data-theme="light"               → light, whatever the OS says
+    3. data-theme="dark"                → dark, whatever the OS says
+
+  The `:not([data-theme='dark'])` guard on the media query is what makes an
+  explicit dark choice survive an OS set to light.
+*/
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --color-canvas: #eef2f8;
+    --color-surface: #f6f8fc;
+    --color-card: #ffffff;
+    --color-elevated: #f1f5fa;
+    --color-overlay: #e7edf6;
+
+    --color-rim: #dbe3ee;
+    --color-rim-bright: #c3d0e2;
+
+    /* Slate rather than black: pure #000 on white is harsher than it looks. */
+    --color-ink: #16202e;
+    --color-ink-dim: #5a6a80;
+
+    --color-armed-bg: #e6f7ef;
+    --color-fired-bg: #fdf0e3;
+    --color-danger-bg: #fdeaea;
+    --color-success-bg: #e6f7ef;
+  }
+}
+
+:root[data-theme='light'] {
+  --color-canvas: #eef2f8;
+  --color-surface: #f6f8fc;
+  --color-card: #ffffff;
+  --color-elevated: #f1f5fa;
+  --color-overlay: #e7edf6;
+
+  --color-rim: #dbe3ee;
+  --color-rim-bright: #c3d0e2;
+
+  --color-ink: #16202e;
+  --color-ink-dim: #5a6a80;
+
+  --color-armed-bg: #e6f7ef;
+  --color-fired-bg: #fdf0e3;
+  --color-danger-bg: #fdeaea;
+  --color-success-bg: #e6f7ef;
+}
+
+/*
+  Shimmer stops live outside @theme because they are decoration for one
+  utility, not part of the palette components reference.
+*/
+:root {
+  --shimmer-1: #7dd3fc;
+  --shimmer-2: #bfdbfe;
+  --shimmer-3: #818cf8;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --shimmer-1: #0284c7;
+    --shimmer-2: #4f46e5;
+    --shimmer-3: #0ea5e9;
+  }
+}
+:root[data-theme='light'] {
+  --shimmer-1: #0284c7;
+  --shimmer-2: #4f46e5;
+  --shimmer-3: #0ea5e9;
+}
+
+/*
+  `color-scheme` is what makes native widgets — scrollbars, date pickers, form
+  controls — follow the theme. It has to track the same three states, or a
+  light page renders a dark date picker.
+*/
 :root {
   color-scheme: dark;
 }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    color-scheme: light;
+  }
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
 
 body {
-  background-color: #080c18;
-  color: #dde8f5;
+  /* Tokens, not literals: these used to be hard-coded and would have stayed
+     dark while everything around them turned light. */
+  background-color: var(--color-surface);
+  color: var(--color-ink);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
-/* Native elements inherit dark color-scheme */
-input,
-select,
-textarea,
-button {
-  color-scheme: dark;
-}
-
-/* Thin dark scrollbar */
+/* Thin scrollbar, following the theme through the same tokens. */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -63,11 +147,11 @@ button {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #182438;
+  background: var(--color-rim);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #1f3050;
+  background: var(--color-rim-bright);
 }
 
 /* ── Keyframes ──────────────────────────────────────────── */
@@ -193,17 +277,20 @@ button {
         rgba(14, 165, 233, 0.05) 0%,
         transparent 55%
       ),
-      #080c18;
+      /* The tinted washes above are translucent, so they read on either
+         theme; only the base underneath has to follow it. */
+        var(--color-surface);
   }
 
-  /* Shimmer gradient text (hero heading) */
+  /* Shimmer gradient text (hero heading). The stops are tokens because pastels
+     that glow on navy turn nearly invisible on white. */
   .text-shimmer {
     background: linear-gradient(
       120deg,
-      #7dd3fc 0%,
-      #bfdbfe 35%,
-      #818cf8 65%,
-      #7dd3fc 100%
+      var(--shimmer-1) 0%,
+      var(--shimmer-2) 35%,
+      var(--shimmer-3) 65%,
+      var(--shimmer-1) 100%
     );
     background-size: 200% auto;
     -webkit-background-clip: text;
@@ -220,6 +307,6 @@ button {
     box-shadow: inset 3px 0 0 #fbbf24;
   }
   .card-paused {
-    box-shadow: inset 3px 0 0 #1f3050;
+    box-shadow: inset 3px 0 0 var(--color-rim-bright);
   }
 }

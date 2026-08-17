@@ -8,6 +8,7 @@ import { logout, useProfile, useResendVerification } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
 import { useAuthBootstrap } from '@/lib/use-auth-bootstrap';
 import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const NAV = [
   {
@@ -289,6 +290,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="hidden text-xs text-ink-dim sm:inline truncate max-w-40">
               {email}
             </span>
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
             <button
               onClick={onLogout}
               className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
@@ -331,6 +335,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <p className="px-3 py-1 text-xs text-ink-dim truncate">
                   {email}
                 </p>
+                {/* The header copy is hidden below `sm`, so the menu carries
+                    it — otherwise the setting is unreachable on a phone. */}
+                <div className="px-3 py-2">
+                  <ThemeToggle />
+                </div>
               </div>
             </nav>
           </div>

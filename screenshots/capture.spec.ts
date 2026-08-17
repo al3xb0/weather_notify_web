@@ -369,3 +369,16 @@ test('settings', async ({ page }) => {
   await settle(page);
   await shoot(page, 'settings', true);
 });
+
+test('dashboard in light theme', async ({ page }) => {
+  await stub(page);
+  // Set before navigation so the pre-paint script picks it up, which is also
+  // the path a returning user takes.
+  await page.addInitScript(() => {
+    localStorage.setItem('wn-theme', 'light');
+  });
+  await page.goto('/dashboard');
+  await expect(page.getByText('Berlin heat wave')).toBeVisible();
+  await settle(page);
+  await shoot(page, 'dashboard-light');
+});
