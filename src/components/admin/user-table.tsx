@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { SkeletonList } from '@/components/ui/skeleton';
 import type { AdminUserListItem, Paginated } from '@/lib/types';
 import { RoleBadge } from './role-badge';
+import { useT } from '@/i18n';
 
 const PAGER_BUTTON =
   'focus-ring rounded-xl border border-rim px-3.5 py-2 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-not-allowed disabled:opacity-40';
@@ -21,14 +22,21 @@ export function UserTable({
   selectedId: string | null;
   onSelect: (id: string | null) => void;
 }) {
+  const t = useT();
   const users = useAdminUsers(page);
 
   return (
     <AsyncBoundary
       query={users}
-      skeleton={<SkeletonList count={5} variant="row" label="Loading users" />}
+      skeleton={
+        <SkeletonList
+          count={5}
+          variant="row"
+          label={t('admin.users.loading')}
+        />
+      }
       isEmpty={(p: Paginated<AdminUserListItem>) => p.items.length === 0}
-      empty={<EmptyState title="No users" />}
+      empty={<EmptyState title={t('admin.users.empty')} />}
     >
       {(data) => {
         const totalPages = Math.max(
@@ -39,10 +47,10 @@ export function UserTable({
           <div className="space-y-3">
             <div className="overflow-hidden rounded-2xl border border-rim bg-card">
               <div className="hidden grid-cols-12 gap-2 border-b border-rim px-4 py-2.5 text-xs font-medium text-ink-dim/70 sm:grid">
-                <span className="col-span-5">Email</span>
-                <span className="col-span-2">Role</span>
-                <span className="col-span-2">Triggers</span>
-                <span className="col-span-3">Joined</span>
+                <span className="col-span-5">{t('admin.users.email')}</span>
+                <span className="col-span-2">{t('admin.users.role')}</span>
+                <span className="col-span-2">{t('admin.users.triggers')}</span>
+                <span className="col-span-3">{t('admin.users.joined')}</span>
               </div>
               {data.items.map((u) => (
                 <button
@@ -60,7 +68,7 @@ export function UserTable({
                       </span>
                       {!u.emailVerified && (
                         <span className="shrink-0 text-[10px] text-amber-400">
-                          unverified
+                          {t('admin.users.unverified')}
                         </span>
                       )}
                     </span>
@@ -80,7 +88,7 @@ export function UserTable({
 
             {totalPages > 1 && (
               <nav
-                aria-label="Users pagination"
+                aria-label={t('admin.users.pagination')}
                 className="flex items-center justify-between gap-4"
               >
                 <button
@@ -88,17 +96,17 @@ export function UserTable({
                   disabled={page <= 1 || users.isPlaceholderData}
                   className={PAGER_BUTTON}
                 >
-                  ← Prev
+                  {t('admin.users.prev')}
                 </button>
                 <span aria-live="polite" className="text-xs text-ink-dim">
-                  Page {page} of {totalPages}
+                  {t('admin.users.page', { page, total: totalPages })}
                 </span>
                 <button
                   onClick={() => onPageChange(Math.min(totalPages, page + 1))}
                   disabled={page >= totalPages || users.isPlaceholderData}
                   className={PAGER_BUTTON}
                 >
-                  Next →
+                  {t('admin.users.next')}
                 </button>
               </nav>
             )}

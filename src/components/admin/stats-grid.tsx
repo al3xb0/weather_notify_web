@@ -3,6 +3,7 @@
 import { useAdminStats } from '@/lib/hooks';
 import { AsyncBoundary } from '@/components/ui/async-boundary';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useT } from '@/i18n';
 
 const GRID = 'grid grid-cols-2 gap-3 sm:grid-cols-4';
 
@@ -16,6 +17,7 @@ function StatCard({ label, value }: { label: string; value: number }) {
 }
 
 export function StatsGrid() {
+  const t = useT();
   const stats = useAdminStats();
   return (
     <AsyncBoundary
@@ -24,7 +26,7 @@ export function StatsGrid() {
         <div
           role="status"
           aria-busy="true"
-          aria-label="Loading stats"
+          aria-label={t('admin.stats.loading')}
           className={GRID}
         >
           {Array.from({ length: 8 }, (_, i) => (
@@ -38,15 +40,27 @@ export function StatsGrid() {
     >
       {(data) => (
         <div className={GRID}>
-          <StatCard label="Users" value={data.users} />
-          <StatCard label="Verified" value={data.verifiedUsers} />
-          <StatCard label="Admins" value={data.admins} />
-          <StatCard label="Triggers" value={data.triggers} />
-          <StatCard label="Active triggers" value={data.activeTriggers} />
-          <StatCard label="Pinned cities" value={data.pinnedCities} />
-          <StatCard label="Notifications sent" value={data.notificationsSent} />
+          <StatCard label={t('admin.stats.users')} value={data.users} />
           <StatCard
-            label="Notifications failed"
+            label={t('admin.stats.verified')}
+            value={data.verifiedUsers}
+          />
+          <StatCard label={t('admin.stats.admins')} value={data.admins} />
+          <StatCard label={t('admin.stats.triggers')} value={data.triggers} />
+          <StatCard
+            label={t('admin.stats.activeTriggers')}
+            value={data.activeTriggers}
+          />
+          <StatCard
+            label={t('admin.stats.pinnedCities')}
+            value={data.pinnedCities}
+          />
+          <StatCard
+            label={t('admin.stats.notificationsSent')}
+            value={data.notificationsSent}
+          />
+          <StatCard
+            label={t('admin.stats.notificationsFailed')}
             value={data.notificationsFailed}
           />
         </div>

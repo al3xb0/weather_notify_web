@@ -80,7 +80,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   });
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-aurora px-4 py-12">
+    <div className="flex flex-1 items-center justify-center bg-aurora px-4 py-12">
       <div className="w-full max-w-sm">
         {/* Logo mark */}
         <WeatherBadge />

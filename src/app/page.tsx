@@ -101,7 +101,7 @@ const FEATURES = [
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col bg-aurora">
+    <main className="flex flex-1 flex-col bg-aurora">
       {/* Hero */}
       <section className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
         {/* Animated radar icon */}

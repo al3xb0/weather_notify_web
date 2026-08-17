@@ -37,41 +37,13 @@
 
 /*
   ── Light theme ───────────────────────────────────────────
-  The tokens above are the dark values, so dark is what renders if none of the
-  rules below match. Only the tokens change: every component keeps referring to
-  `bg-card` and `text-ink`, which is the whole point of naming them by role
-  rather than by colour.
-
-  Three states, in the order CSS resolves them:
-    1. no attribute + OS prefers light  → light
-    2. data-theme="light"               → light, whatever the OS says
-    3. data-theme="dark"                → dark, whatever the OS says
-
-  The `:not([data-theme='dark'])` guard on the media query is what makes an
-  explicit dark choice survive an OS set to light.
+  The tokens above are the dark values, so dark is what renders unless the root
+  carries `data-theme="light"` — the OS preference is deliberately not
+  consulted, because dark is the app's default look and light is the opt-in.
+  Only the tokens change: every component keeps referring to `bg-card` and
+  `text-ink`, which is the whole point of naming them by role rather than by
+  colour.
 */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme='dark']) {
-    --color-canvas: #eef2f8;
-    --color-surface: #f6f8fc;
-    --color-card: #ffffff;
-    --color-elevated: #f1f5fa;
-    --color-overlay: #e7edf6;
-
-    --color-rim: #dbe3ee;
-    --color-rim-bright: #c3d0e2;
-
-    /* Slate rather than black: pure #000 on white is harsher than it looks. */
-    --color-ink: #16202e;
-    --color-ink-dim: #5a6a80;
-
-    --color-armed-bg: #e6f7ef;
-    --color-fired-bg: #fdf0e3;
-    --color-danger-bg: #fdeaea;
-    --color-success-bg: #e6f7ef;
-  }
-}
-
 :root[data-theme='light'] {
   --color-canvas: #eef2f8;
   --color-surface: #f6f8fc;
@@ -82,6 +54,7 @@
   --color-rim: #dbe3ee;
   --color-rim-bright: #c3d0e2;
 
+  /* Slate rather than black: pure #000 on white is harsher than it looks. */
   --color-ink: #16202e;
   --color-ink-dim: #5a6a80;
 
@@ -100,13 +73,6 @@
   --shimmer-2: #bfdbfe;
   --shimmer-3: #818cf8;
 }
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme='dark']) {
-    --shimmer-1: #0284c7;
-    --shimmer-2: #4f46e5;
-    --shimmer-3: #0ea5e9;
-  }
-}
 :root[data-theme='light'] {
   --shimmer-1: #0284c7;
   --shimmer-2: #4f46e5;
@@ -115,16 +81,10 @@
 
 /*
   `color-scheme` is what makes native widgets — scrollbars, date pickers, form
-  controls — follow the theme. It has to track the same three states, or a
-  light page renders a dark date picker.
+  controls — follow the theme, or a light page renders a dark date picker.
 */
 :root {
   color-scheme: dark;
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme='dark']) {
-    color-scheme: light;
-  }
 }
 :root[data-theme='light'] {
   color-scheme: light;

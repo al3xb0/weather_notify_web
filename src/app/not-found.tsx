@@ -23,7 +23,7 @@ export default function NotFound() {
   }, [router]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-aurora px-6 text-center">
+    <main className="flex flex-1 flex-col items-center justify-center bg-aurora px-6 text-center">
       {/* Radar rings echo the landing hero so a dead end still feels on-brand. */}
       <div className="relative mb-10 inline-flex items-center justify-center animate-fade-up">
         <span className="absolute h-24 w-24 rounded-full border border-sky-400/25 animate-radar" />

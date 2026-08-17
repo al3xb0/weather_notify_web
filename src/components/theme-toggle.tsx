@@ -1,10 +1,18 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import { useT } from '@/i18n';
 
-export type Theme = 'system' | 'light' | 'dark';
+export type Theme = 'light' | 'dark';
 
 export const THEME_STORAGE_KEY = 'wn-theme';
+
+/**
+ * Dark is what the product looks like; light is the opt-in. Following the OS
+ * used to be a third state, and it mostly served to render the app in a theme
+ * it was never designed in — so the choice is now the two it actually has.
+ */
+export const DEFAULT_THEME: Theme = 'dark';
 
 /**
  * The stored choice is external state, so it is read through
@@ -26,21 +34,17 @@ function subscribeToTheme(onChange: () => void): () => void {
 function readStoredTheme(): Theme {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
-    return stored === 'light' || stored === 'dark' ? stored : 'system';
+    return stored === 'light' || stored === 'dark' ? stored : DEFAULT_THEME;
   } catch {
     // Storage can throw in a locked-down browser; the default is still usable.
-    return 'system';
+    return DEFAULT_THEME;
   }
 }
 
 /** Persist a choice, apply it, and wake every subscriber in this tab. */
 function storeTheme(theme: Theme): void {
   try {
-    if (theme === 'system') {
-      localStorage.removeItem(THEME_STORAGE_KEY);
-    } else {
-      localStorage.setItem(THEME_STORAGE_KEY, theme);
-    }
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch {
     // Losing persistence is survivable; the current page still switches.
   }
@@ -48,33 +52,23 @@ function storeTheme(theme: Theme): void {
   for (const listener of listeners) listener();
 }
 
-/**
- * Apply a choice by stamping the root element, which is what the CSS reads.
- * `system` removes the attribute rather than resolving it here, so the page
- * keeps following the OS if the user changes it while the tab is open.
- */
+/** Apply a choice by stamping the root element, which is what the CSS reads. */
 export function applyTheme(theme: Theme): void {
-  const root = document.documentElement;
-  if (theme === 'system') {
-    root.removeAttribute('data-theme');
-  } else {
-    root.setAttribute('data-theme', theme);
-  }
+  document.documentElement.setAttribute('data-theme', theme);
 }
 
 /**
- * Runs before first paint, inlined in the document head. Without it the page
- * renders in the OS theme and then snaps to the stored one — a flash on every
- * navigation for anyone whose choice differs from their system setting.
+ * Runs before first paint, inlined in the document head. Without it a user who
+ * chose light sees the page render dark and snap to light on every navigation.
  *
  * Deliberately tiny and dependency-free: it executes before React exists.
  */
-export const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t)}}catch(e){}})()`;
+export const THEME_INIT_SCRIPT = `(function(){var t='${DEFAULT_THEME}';try{if(localStorage.getItem('${THEME_STORAGE_KEY}')==='light'){t='light'}}catch(e){}document.documentElement.setAttribute('data-theme',t)})()`;
 
-const OPTIONS: { value: Theme; label: string; icon: React.ReactElement }[] = [
+const OPTIONS = [
   {
     value: 'light',
-    label: 'Light',
+    labelKey: 'theme.light',
     icon: (
       <svg
         viewBox="0 0 16 16"
@@ -93,36 +87,8 @@ const OPTIONS: { value: Theme; label: string; icon: React.ReactElement }[] = [
     ),
   },
   {
-    value: 'system',
-    label: 'System',
-    icon: (
-      <svg
-        viewBox="0 0 16 16"
-        fill="none"
-        className="h-4 w-4"
-        aria-hidden="true"
-      >
-        <rect
-          x="1.8"
-          y="2.6"
-          width="12.4"
-          height="8.4"
-          rx="1.2"
-          stroke="currentColor"
-          strokeWidth="1.4"
-        />
-        <path
-          d="M5.5 13.4h5"
-          stroke="currentColor"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-        />
-      </svg>
-    ),
-  },
-  {
     value: 'dark',
-    label: 'Dark',
+    labelKey: 'theme.dark',
     icon: (
       <svg
         viewBox="0 0 16 16"
@@ -139,40 +105,37 @@ const OPTIONS: { value: Theme; label: string; icon: React.ReactElement }[] = [
       </svg>
     ),
   },
-];
+] as const;
 
-/**
- * Three explicit states rather than a two-way switch. A toggle cannot express
- * "follow the OS", which is the setting most people actually want — and the
- * one they end up stuck outside of once a toggle has written a preference.
- */
 export function ThemeToggle() {
+  const t = useT();
   // `useSyncExternalStore` rather than reading storage in an effect: the stored
   // choice is external state, and this is the hook for exactly that. It also
-  // renders `system` on the server without a hydration mismatch, and keeps
+  // renders the default on the server without a hydration mismatch, and keeps
   // every open tab in step for free through the `storage` event.
   const theme = useSyncExternalStore(
     subscribeToTheme,
     readStoredTheme,
-    () => 'system' as Theme,
+    () => DEFAULT_THEME,
   );
 
   return (
     <div
       role="radiogroup"
-      aria-label="Colour theme"
+      aria-label={t('theme.label')}
       className="inline-flex items-center gap-0.5 rounded-xl border border-rim p-0.5"
     >
       {OPTIONS.map((option) => {
         const active = theme === option.value;
+        const label = t(option.labelKey);
         return (
           <button
             key={option.value}
             type="button"
             role="radio"
             aria-checked={active}
-            aria-label={option.label}
-            title={option.label}
+            aria-label={label}
+            title={label}
             onClick={() => storeTheme(option.value)}
             className={`focus-ring rounded-lg p-1.5 transition-colors ${
               active
