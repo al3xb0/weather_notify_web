@@ -80,7 +80,7 @@ export function CityAutocomplete({
             blurTimer.current = setTimeout(() => setFocused(false), 120);
           }}
           placeholder="Search a city…"
-          className="w-full rounded-xl border border-rim bg-base py-2.5 pl-9 pr-3.5 text-sm text-ink placeholder-ink-dim/50 outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10"
+          className="w-full rounded-xl border border-rim bg-surface py-2.5 pl-9 pr-3.5 text-sm text-ink placeholder-ink-dim/50 outline-none transition-colors focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/10"
         />
       </div>
 

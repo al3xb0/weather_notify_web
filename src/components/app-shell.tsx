@@ -8,11 +8,14 @@ import { logout, useProfile, useResendVerification } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
 import { useAuthBootstrap } from '@/lib/use-auth-bootstrap';
 import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { LanguageToggle } from '@/components/language-toggle';
+import { useT } from '@/i18n';
 
 const NAV = [
   {
     href: '/dashboard',
-    label: 'Triggers',
+    labelKey: 'nav.triggers' as const,
     icon: (
       <svg
         viewBox="0 0 16 16"
@@ -27,7 +30,7 @@ const NAV = [
   },
   {
     href: '/weather',
-    label: 'Weather',
+    labelKey: 'nav.weather' as const,
     icon: (
       <svg
         viewBox="0 0 16 16"
@@ -47,7 +50,7 @@ const NAV = [
   },
   {
     href: '/notifications',
-    label: 'Notifications',
+    labelKey: 'nav.notifications' as const,
     icon: (
       <svg
         viewBox="0 0 16 16"
@@ -71,7 +74,7 @@ const NAV = [
   },
   {
     href: '/settings',
-    label: 'Settings',
+    labelKey: 'nav.settings' as const,
     icon: (
       <svg
         viewBox="0 0 16 16"
@@ -93,7 +96,7 @@ const NAV = [
 
 const ADMIN_NAV = {
   href: '/admin',
-  label: 'Admin',
+  labelKey: 'nav.admin' as const,
   icon: (
     <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
       <path
@@ -135,6 +138,7 @@ function LogoMark() {
 }
 
 function EmailVerificationBanner() {
+  const t = useT();
   const { data: profile } = useProfile();
   const resend = useResendVerification();
   const [msg, setMsg] = useState<string | null>(null);
@@ -145,7 +149,7 @@ function EmailVerificationBanner() {
     setMsg(null);
     try {
       const res = await resend.mutateAsync();
-      setMsg(res.sent ? 'Verification email sent.' : 'Already verified.');
+      setMsg(res.sent ? t('shell.resendSent') : t('shell.resendAlready'));
     } catch (e) {
       setMsg(apiError(e));
     }
@@ -153,16 +157,14 @@ function EmailVerificationBanner() {
 
   return (
     <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
-      <span className="min-w-50 flex-1">
-        Confirm your email to enable alerts — check your inbox for the link.
-      </span>
+      <span className="min-w-50 flex-1">{t('shell.verifyPrompt')}</span>
       {msg && <span className="text-xs text-amber-200/80">{msg}</span>}
       <button
         onClick={doResend}
         disabled={resend.isPending}
         className="rounded-lg border border-amber-400/40 px-3 py-1.5 text-xs font-medium text-amber-200 transition-colors hover:bg-amber-500/20 disabled:opacity-50"
       >
-        {resend.isPending ? 'Sending…' : 'Resend'}
+        {resend.isPending ? t('shell.resending') : t('shell.resend')}
       </button>
     </div>
   );
@@ -170,8 +172,9 @@ function EmailVerificationBanner() {
 
 /** The header and one content block, in the layout they are about to occupy. */
 function AppShellSkeleton() {
+  const t = useT();
   return (
-    <div className="min-h-screen bg-base">
+    <div className="min-h-screen bg-surface">
       <header className="sticky top-0 z-50 border-b border-rim bg-canvas/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2.5">
@@ -184,7 +187,7 @@ function AppShellSkeleton() {
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-        <SkeletonList count={3} label="Restoring your session" />
+        <SkeletonList count={3} label={t('shell.restoring')} />
       </main>
     </div>
   );
@@ -213,6 +216,7 @@ function HamburgerIcon({ open }: { open: boolean }) {
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const t = useT();
   const router = useRouter();
   const pathname = usePathname();
   const status = useAuthBootstrap();
@@ -245,12 +249,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-base">
+    <div className="min-h-screen bg-surface">
       <a
         href="#main"
         className="skip-link focus-ring rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white"
       >
-        Skip to content
+        {t('nav.skipToContent')}
       </a>
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-rim bg-canvas/90 backdrop-blur-md">
@@ -278,7 +282,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   }`}
                 >
                   {item.icon}
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               );
             })}
@@ -289,11 +293,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="hidden text-xs text-ink-dim sm:inline truncate max-w-40">
               {email}
             </span>
+            <div className="hidden items-center gap-2 sm:flex">
+              <LanguageToggle />
+              <ThemeToggle />
+            </div>
             <button
               onClick={onLogout}
               className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
             >
-              Log out
+              {t('nav.logout')}
             </button>
             {/* Mobile hamburger */}
             <button
@@ -323,7 +331,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     }`}
                   >
                     {item.icon}
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 );
               })}
@@ -331,6 +339,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <p className="px-3 py-1 text-xs text-ink-dim truncate">
                   {email}
                 </p>
+                {/* The header copy is hidden below `sm`, so the menu carries
+                    it — otherwise the setting is unreachable on a phone. */}
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <LanguageToggle />
+                  <ThemeToggle />
+                </div>
               </div>
             </nav>
           </div>

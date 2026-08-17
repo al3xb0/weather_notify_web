@@ -1,6 +1,7 @@
 'use client';
 
 import type { Trigger } from '@/lib/types';
+import { useT } from '@/i18n';
 
 const GHOST =
   'focus-ring rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-not-allowed disabled:opacity-50';
@@ -33,6 +34,8 @@ export function TriggerActions({
   onConfirmDelete: () => void;
   onCancelDelete: () => void;
 }) {
+  const t = useT();
+
   if (confirming) {
     return (
       <div className="flex shrink-0 gap-2">
@@ -41,10 +44,10 @@ export function TriggerActions({
           disabled={deleting}
           className="focus-ring rounded-lg border border-red-500/30 bg-danger-bg px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
         >
-          Confirm
+          {t('common.confirm')}
         </button>
         <button onClick={onCancelDelete} disabled={deleting} className={GHOST}>
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     );
@@ -55,24 +58,28 @@ export function TriggerActions({
       <button
         onClick={onTest}
         disabled={testing || cooling}
-        title={cooling ? 'Cooldown after a test run' : undefined}
+        title={cooling ? t('triggers.testCooldownHint') : undefined}
         className={GHOST}
       >
-        {testing ? 'Sending…' : cooling ? `Wait ${cooldownRemaining}s` : 'Test'}
+        {testing
+          ? t('triggers.testing')
+          : cooling
+            ? t('triggers.testWait', { seconds: cooldownRemaining })
+            : t('triggers.test')}
       </button>
       <button
         onClick={onEdit}
-        aria-label={`Edit ${trigger.name}`}
+        aria-label={t('triggers.editAriaLabel', { name: trigger.name })}
         className={GHOST}
       >
-        Edit
+        {t('triggers.editAction')}
       </button>
       <button
         onClick={onAskDelete}
-        aria-label={`Delete ${trigger.name}`}
+        aria-label={t('triggers.deleteAriaLabel', { name: trigger.name })}
         className={DANGER}
       >
-        Delete
+        {t('triggers.delete')}
       </button>
     </div>
   );

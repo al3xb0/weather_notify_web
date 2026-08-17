@@ -1,8 +1,9 @@
 'use client';
 
 import type { UseFormRegister } from 'react-hook-form';
-import { CHANNEL_LABELS } from '@/lib/types';
+
 import { CHANNELS, type TriggerFormData } from './trigger-schema';
+import { useT } from '@/i18n';
 
 export function ChannelPicker({
   selected,
@@ -11,6 +12,7 @@ export function ChannelPicker({
   selected: string[];
   register: UseFormRegister<TriggerFormData>;
 }) {
+  const t = useT();
   return (
     <div className="flex flex-wrap gap-2">
       {CHANNELS.map((c) => {
@@ -50,7 +52,7 @@ export function ChannelPicker({
                 />
               </svg>
             )}
-            {CHANNEL_LABELS[c]}
+            {t(`channel.${c}`)}
           </label>
         );
       })}

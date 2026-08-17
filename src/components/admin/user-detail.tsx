@@ -11,12 +11,9 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { AsyncBoundary } from '@/components/ui/async-boundary';
 import { SkeletonCard } from '@/components/ui/skeleton';
 import { conditionText } from '@/components/triggers/condition-text';
-import {
-  CHANNEL_LABELS,
-  type AdminUserDetail as AdminUser,
-  type Trigger,
-} from '@/lib/types';
+import { type AdminUserDetail as AdminUser, type Trigger } from '@/lib/types';
 import { RoleBadge } from './role-badge';
+import { useT } from '@/i18n';
 
 const ACTION =
   'focus-ring rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-not-allowed disabled:opacity-50';
@@ -59,6 +56,7 @@ function UserDetailBody({
   selfId: string | undefined;
   onDeleted: () => void;
 }) {
+  const t = useT();
   const update = useUpdateAdminUser();
   const delUser = useDeleteAdminUser();
   const delTrigger = useDeleteAdminTrigger();
@@ -149,36 +147,36 @@ function UserDetailBody({
           <p className="text-sm text-ink-dim">No triggers.</p>
         ) : (
           <ul className="space-y-2">
-            {user.triggers.map((t) => (
+            {user.triggers.map((trigger) => (
               <li
-                key={t.id}
-                className="flex items-start justify-between gap-3 rounded-xl border border-rim bg-base p-3"
+                key={trigger.id}
+                className="flex items-start justify-between gap-3 rounded-xl border border-rim bg-surface p-3"
               >
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 text-sm font-medium text-ink">
-                    <span className="truncate">{t.name}</span>
+                    <span className="truncate">{trigger.name}</span>
                     <span
-                      className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] ${t.state === 'FIRED' ? 'bg-fired-bg text-amber-400' : 'bg-armed-bg text-emerald-400'}`}
+                      className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] ${trigger.state === 'FIRED' ? 'bg-fired-bg text-amber-400' : 'bg-armed-bg text-emerald-400'}`}
                     >
-                      {t.state}
+                      {trigger.state}
                     </span>
-                    {!t.isActive && (
+                    {!trigger.isActive && (
                       <span className="shrink-0 text-[10px] text-ink-dim">
                         paused
                       </span>
                     )}
                   </p>
                   <p className="truncate text-xs text-ink-dim">
-                    <span className="text-sky-400">{t.city}</span> ·{' '}
-                    {conditionText(t)}
+                    <span className="text-sky-400">{trigger.city}</span> ·{' '}
+                    {conditionText(t, trigger)}
                   </p>
                   <p className="text-xs text-ink-dim">
-                    {t.channels.map((c) => CHANNEL_LABELS[c]).join(', ')}
+                    {trigger.channels.map((c) => t(`channel.${c}`)).join(', ')}
                   </p>
                 </div>
                 <button
-                  onClick={() => setConfirmTrigger(t)}
-                  aria-label={`Delete trigger ${t.name}`}
+                  onClick={() => setConfirmTrigger(trigger)}
+                  aria-label={`Delete trigger ${trigger.name}`}
                   className="focus-ring shrink-0 text-ink-dim transition-colors hover:text-red-400"
                 >
                   <svg

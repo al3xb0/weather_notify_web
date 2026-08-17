@@ -1,6 +1,7 @@
 'use client';
 
-import { CHANNEL_LABELS, type Trigger } from '@/lib/types';
+import { type Trigger } from '@/lib/types';
+import { useT } from '@/i18n';
 import { ActiveToggle } from './active-toggle';
 import { TriggerActions } from './trigger-actions';
 import {
@@ -10,9 +11,9 @@ import {
   statusReason,
 } from './condition-text';
 
-function glowClass(t: Trigger): string {
-  if (!t.isActive) return 'card-paused';
-  return t.state === 'FIRED' ? 'card-fired' : 'card-armed';
+function glowClass(trigger: Trigger): string {
+  if (!trigger.isActive) return 'card-paused';
+  return trigger.state === 'FIRED' ? 'card-fired' : 'card-armed';
 }
 
 export interface TriggerCardProps {
@@ -32,7 +33,7 @@ export interface TriggerCardProps {
 }
 
 export function TriggerCard({
-  trigger: t,
+  trigger,
   confirming,
   deleting,
   toggling,
@@ -46,22 +47,25 @@ export function TriggerCard({
   onConfirmDelete,
   onCancelDelete,
 }: TriggerCardProps) {
-  const observed = t.conditions.filter((c) => formatObserved(c) !== null);
-  const reason = statusReason(t);
+  const t = useT();
+  const observed = trigger.conditions.filter(
+    (c) => formatObserved(t, c) !== null,
+  );
+  const reason = statusReason(t, trigger);
 
   return (
     <li
-      className={`flex list-none items-start justify-between gap-4 rounded-2xl border border-rim bg-card p-4 transition-shadow hover:shadow-lg hover:shadow-black/30 ${glowClass(t)}`}
+      className={`flex list-none items-start justify-between gap-4 rounded-2xl border border-rim bg-card p-4 transition-shadow hover:shadow-lg hover:shadow-black/30 ${glowClass(trigger)}`}
     >
       <div className="min-w-0 space-y-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-heading text-sm font-semibold text-ink">
-            {t.name}
+            {trigger.name}
           </span>
 
           <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-              t.state === 'FIRED'
+              trigger.state === 'FIRED'
                 ? 'bg-fired-bg text-amber-400'
                 : 'bg-armed-bg text-emerald-400'
             }`}
@@ -69,29 +73,31 @@ export function TriggerCard({
             <span
               aria-hidden="true"
               className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-                t.state === 'FIRED' ? 'bg-amber-400' : 'bg-emerald-400'
+                trigger.state === 'FIRED' ? 'bg-amber-400' : 'bg-emerald-400'
               }`}
             />
-            {t.state}
+            {trigger.state}
           </span>
 
           <ActiveToggle
-            active={t.isActive}
-            name={t.name}
+            active={trigger.isActive}
+            name={trigger.name}
             pending={toggling}
             onToggle={onToggleActive}
           />
-          {!t.isActive && (
-            <span className="text-xs font-medium text-ink-dim">paused</span>
+          {!trigger.isActive && (
+            <span className="text-xs font-medium text-ink-dim">
+              {t('triggers.paused')}
+            </span>
           )}
         </div>
 
         <p className="text-sm text-ink-dim">
-          <span className="text-sky-400">{t.city}</span>
+          <span className="text-sky-400">{trigger.city}</span>
           <span aria-hidden="true" className="mx-1.5 text-ink-dim/40">
             ·
           </span>
-          {conditionText(t)}
+          {conditionText(t, trigger)}
         </p>
 
         {observed.length > 0 && (
@@ -101,7 +107,7 @@ export function TriggerCard({
                 key={c.id}
                 className="inline-flex items-center rounded-full bg-elevated px-2 py-0.5 font-medium text-sky-300"
               >
-                {shortMetric(c.metric)}: {formatObserved(c)}
+                {shortMetric(t, c.metric)}: {formatObserved(t, c)}
               </span>
             ))}
             {reason && <span className="text-ink-dim/70">{reason}</span>}
@@ -109,24 +115,26 @@ export function TriggerCard({
         )}
 
         <p className="text-xs text-ink-dim/70">
-          {t.channels.map((c) => CHANNEL_LABELS[c]).join(', ')}
+          {trigger.channels.map((c) => t(`channel.${c}`)).join(', ')}
           <span aria-hidden="true" className="mx-1.5">
             ·
           </span>
-          cooldown {t.cooldownMin}m
-          {t.lastFiredAt && (
+          {t('triggers.cooldownShort', { minutes: trigger.cooldownMin })}
+          {trigger.lastFiredAt && (
             <>
               <span aria-hidden="true" className="mx-1.5">
                 ·
               </span>
-              last fired {new Date(t.lastFiredAt).toLocaleDateString()}
+              {t('triggers.lastFired', {
+                date: new Date(trigger.lastFiredAt).toLocaleDateString(),
+              })}
             </>
           )}
         </p>
       </div>
 
       <TriggerActions
-        trigger={t}
+        trigger={trigger}
         confirming={confirming}
         deleting={deleting}
         testing={testing}

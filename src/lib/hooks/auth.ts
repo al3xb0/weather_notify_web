@@ -36,6 +36,32 @@ export function useVerifyEmail() {
   });
 }
 
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      // Always resolves for a valid address, known or not — the API answers
+      // identically on purpose, so the UI must not infer anything from it.
+      const { data } = await api.post<{ accepted: boolean }>(
+        '/auth/forgot-password',
+        { email },
+      );
+      return data;
+    },
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: async (input: { token: string; password: string }) => {
+      await api.post('/auth/reset-password', input);
+      // Every session was just revoked server-side, including this tab's if it
+      // had one. Drop the in-memory token so the UI does not keep showing a
+      // signed-in shell around a session the API will refuse.
+      useAuthStore.getState().clear();
+    },
+  });
+}
+
 export function useResendVerification() {
   const qc = useQueryClient();
   return useMutation({

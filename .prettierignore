@@ -2,6 +2,9 @@
 node_modules
 public
 api-spec
+coverage
+test-results
+playwright-report
 # Generated from the API's OpenAPI document; formatting it would show up as
 # drift the moment it is regenerated.
 src/lib/api-types.ts

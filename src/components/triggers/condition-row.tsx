@@ -1,9 +1,10 @@
 'use client';
 
 import type { UseFormRegister } from 'react-hook-form';
-import { METRIC_LABELS, OPERATOR_LABELS } from '@/lib/types';
+import { OPERATOR_LABELS } from '@/lib/types';
 import { inputClass, selectClass } from '@/components/ui/field';
 import { METRICS, OPERATORS, type TriggerFormData } from './trigger-schema';
+import { useT } from '@/i18n';
 
 function SelectWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -42,6 +43,7 @@ export function ConditionRow({
   register: UseFormRegister<TriggerFormData>;
   onRemove: () => void;
 }) {
+  const t = useT();
   const position = index + 1;
   return (
     <div className="flex items-start gap-2">
@@ -54,7 +56,7 @@ export function ConditionRow({
           >
             {METRICS.map((m) => (
               <option key={m} value={m}>
-                {METRIC_LABELS[m]}
+                {t(`metric.${m}`)}
               </option>
             ))}
           </select>

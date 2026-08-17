@@ -1,0 +1,17 @@
+export const auth = {
+  'auth.signIn': 'Sign in',
+  'auth.register': 'Create account',
+  'auth.welcomeBack': 'Welcome back',
+  'auth.signInSubtitle': 'Sign in to your Weather Notify account',
+  'auth.registerSubtitle': 'Start monitoring weather in seconds',
+  'auth.email': 'Email',
+  'auth.password': 'Password',
+  'auth.emailPlaceholder': 'you@example.com',
+  'auth.pleaseWait': 'Please wait…',
+  'auth.noAccount': 'No account?',
+  'auth.haveAccount': 'Already registered?',
+  'auth.registerLink': 'Register',
+  'auth.forgotPassword': 'Forgot password?',
+  'auth.invalidEmail': 'Enter a valid email',
+  'auth.passwordTooShort': 'At least 8 characters',
+} as const;

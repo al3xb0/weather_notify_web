@@ -1,9 +1,6 @@
 import type { ReactElement } from 'react';
-import {
-  CHANNEL_LABELS,
-  type NotifStatus,
-  type NotificationItem,
-} from '@/lib/types';
+import { type NotifStatus, type NotificationItem } from '@/lib/types';
+import { useT } from '@/i18n';
 
 const CHANNEL_ICONS: Record<string, ReactElement> = {
   TELEGRAM: (
@@ -82,6 +79,7 @@ export function NotificationRow({
   deleting: boolean;
   onDelete: () => void;
 }) {
+  const t = useT();
   const style = STATUS_STYLE[n.status] ?? STATUS_STYLE.FAILED;
   const title = n.payload?.triggerName ?? 'Trigger';
 
@@ -106,7 +104,7 @@ export function NotificationRow({
             )}
           </p>
           <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-dim">
-            <span>{CHANNEL_LABELS[n.channel]}</span>
+            <span>{t(`channel.${n.channel}`)}</span>
             <span aria-hidden="true" className="text-ink-dim/60">
               •
             </span>

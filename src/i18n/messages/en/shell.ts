@@ -1,0 +1,22 @@
+export const shell = {
+  'nav.triggers': 'Triggers',
+  'nav.weather': 'Weather',
+  'nav.notifications': 'Notifications',
+  'nav.settings': 'Settings',
+  'nav.admin': 'Admin',
+  'nav.logout': 'Log out',
+  'nav.skipToContent': 'Skip to content',
+  'nav.menu': 'Menu',
+  'shell.restoring': 'Restoring your session',
+  'shell.verifyPrompt':
+    'Confirm your email to enable alerts — check your inbox for the link.',
+  'shell.resend': 'Resend',
+  'shell.resending': 'Sending…',
+  'shell.resendSent': 'Verification email sent.',
+  'shell.resendAlready': 'Already verified.',
+  'theme.label': 'Colour theme',
+  'theme.light': 'Light',
+  'theme.dark': 'Dark',
+  'theme.system': 'System',
+  'language.label': 'Language',
+} as const;

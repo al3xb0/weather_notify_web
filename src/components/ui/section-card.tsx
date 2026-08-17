@@ -9,18 +9,27 @@ export function SectionCard({
   title,
   subtitle,
   badge,
+  tone = 'default',
   children,
 }: {
   icon: ReactNode;
   title: string;
   subtitle: string;
   badge?: ReactNode;
+  /** `danger` reddens the icon so a destructive panel reads as one at a glance. */
+  tone?: 'default' | 'danger';
   children: ReactNode;
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-rim bg-card">
       <div className="flex items-center gap-3 border-b border-rim px-5 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
+        <div
+          className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+            tone === 'danger'
+              ? 'bg-red-500/10 text-red-400'
+              : 'bg-sky-500/10 text-sky-400'
+          }`}
+        >
           {icon}
         </div>
         <div>

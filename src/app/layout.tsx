@@ -3,6 +3,8 @@ import { Geist, Geist_Mono, Sora } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { SiteFooter } from '@/components/site-footer';
+import { THEME_INIT_SCRIPT } from '@/components/theme-toggle';
+import { LOCALE_INIT_SCRIPT } from '@/i18n';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -35,7 +37,21 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-base text-ink">
+      <head>
+        {/*
+          Before first paint: reads the stored choice and stamps the root, so a
+          user whose preference differs from their OS does not see the page
+          render in one theme and snap to the other on every navigation.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/*
+          Stamps `lang` from the stored choice or the browser's preference. A
+          document claiming `lang="en"` while showing Russian makes screen
+          readers use the wrong voice.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: LOCALE_INIT_SCRIPT }} />
+      </head>
+      <body className="min-h-full bg-surface text-ink">
         <Providers>
           <div className="flex min-h-screen flex-col">
             <div className="flex-1">{children}</div>

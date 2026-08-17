@@ -16,7 +16,24 @@ jobs:
       # actions/checkout cannot write outside the workspace, so the API
       # repository lands in ./api-spec rather than the ../weather_notify the
       # local gen:api script expects. Only the document is needed.
-      - uses: actions/checkout@v4
+      #
+      # Try the same owner as this repository first, so a fork of both builds
+      # green against its own contract with nothing to configure. This used to
+      # read a repository variable, which meant every fork had to set one
+      # before its first build could pass.
+      - id: fork-spec
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/weather_notify
+          path: api-spec
+          sparse-checkout: openapi.json
+          sparse-checkout-cone-mode: false
+
+      # A fork of the UI alone has no API repository to read, and checking the
+      # types against upstream is a better answer than failing to check them.
+      - if: steps.fork-spec.outcome == 'failure'
+        uses: actions/checkout@v4
         with:
           repository: al3xb0/weather_notify
           path: api-spec
@@ -35,7 +52,25 @@ jobs:
       # The API repository has enforced formatting since it had a pre-commit
       # hook; this side had neither, and the style drifted file by file.
       - run: npm run format:check
-      - run: npm run test
+
+      # With coverage, and without a threshold. The API repository gates on a
+      # percentage because its suites are the only proof its services behave;
+      # here the report answers a different question — which of these files no
+      # test touches at all — and a gate would answer it by failing builds
+      # rather than by being read.
+      - run: npm run test:cov
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          set -euo pipefail
+          [ -f coverage/coverage-summary.json ] || exit 0
+          jq -r '.total | "| Metric | Covered |", "| --- | --- |",
+            "| Statements | \(.statements.pct)% (\(.statements.covered)/\(.statements.total)) |",
+            "| Branches | \(.branches.pct)% (\(.branches.covered)/\(.branches.total)) |",
+            "| Functions | \(.functions.pct)% (\(.functions.covered)/\(.functions.total)) |",
+            "| Lines | \(.lines.pct)% (\(.lines.covered)/\(.lines.total)) |"' \
+            coverage/coverage-summary.json >> "$GITHUB_STEP_SUMMARY"
 
       # The API's own CI proves openapi.json matches its controllers; this
       # proves the committed client types still match openapi.json. Without it
@@ -44,3 +79,20 @@ jobs:
       - run: npm run gen:api:check
 
       - run: npm run build
+
+      # The Vitest suites render components in jsdom, which cannot show whether
+      # the app boots: routing, hydration, and the session bootstrap that runs
+      # before the first paint only happen in a real browser. Chromium alone —
+      # the other engines would triple the install for the same coverage of our
+      # own wiring.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3000
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

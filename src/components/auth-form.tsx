@@ -9,10 +9,11 @@ import { z } from 'zod';
 import { login, register as registerUser } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
 import { Field, inputClass } from '@/components/ui/field';
+import { useT, type MessageKey } from '@/i18n';
 
 const schema = z.object({
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(8, 'At least 8 characters'),
+  email: z.string().email('auth.invalidEmail'),
+  password: z.string().min(8, 'auth.passwordTooShort'),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -54,6 +55,7 @@ function WeatherBadge() {
 }
 
 export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
+  const t = useT();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const {
@@ -86,16 +88,21 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         {/* Card */}
         <div className="rounded-2xl border border-rim bg-card p-8 shadow-2xl shadow-black/40">
           <h1 className="font-heading mb-1 text-xl font-bold text-ink">
-            {mode === 'login' ? 'Welcome back' : 'Create account'}
+            {mode === 'login' ? t('auth.welcomeBack') : t('auth.register')}
           </h1>
           <p className="mb-6 text-sm text-ink-dim">
             {mode === 'login'
-              ? 'Sign in to your Weather Notify account'
-              : 'Start monitoring weather in seconds'}
+              ? t('auth.signInSubtitle')
+              : t('auth.registerSubtitle')}
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4">
-            <Field label="Email" error={errors.email?.message}>
+            <Field
+              label={t('auth.email')}
+              error={
+                errors.email?.message && t(errors.email.message as MessageKey)
+              }
+            >
               {({ id, invalid, describedBy }) => (
                 <input
                   id={id}
@@ -105,12 +112,18 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                   aria-describedby={describedBy}
                   {...register('email')}
                   className={inputClass}
-                  placeholder="you@example.com"
+                  placeholder={t('auth.emailPlaceholder')}
                 />
               )}
             </Field>
 
-            <Field label="Password" error={errors.password?.message}>
+            <Field
+              label={t('auth.password')}
+              error={
+                errors.password?.message &&
+                t(errors.password.message as MessageKey)
+              }
+            >
               {({ id, invalid, describedBy }) => (
                 <input
                   id={id}
@@ -126,6 +139,17 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                 />
               )}
             </Field>
+
+            {mode === 'login' && (
+              <p className="text-right text-xs">
+                <Link
+                  href="/forgot-password"
+                  className="font-medium text-sky-400 transition-colors hover:text-sky-300"
+                >
+                  {t('auth.forgotPassword')}
+                </Link>
+              </p>
+            )}
 
             {/* Global error */}
             {error && (
@@ -144,10 +168,10 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               className="mt-2 w-full rounded-xl bg-sky-500 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:bg-sky-400 hover:shadow-sky-400/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting
-                ? 'Please wait…'
+                ? t('auth.pleaseWait')
                 : mode === 'login'
-                  ? 'Sign in'
-                  : 'Create account'}
+                  ? t('auth.signIn')
+                  : t('auth.register')}
             </button>
           </form>
         </div>
@@ -156,22 +180,22 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         <p className="mt-5 text-center text-sm text-ink-dim">
           {mode === 'login' ? (
             <>
-              No account?{' '}
+              {t('auth.noAccount')}{' '}
               <Link
                 href="/register"
                 className="font-medium text-sky-400 hover:text-sky-300 transition-colors"
               >
-                Register
+                {t('auth.registerLink')}
               </Link>
             </>
           ) : (
             <>
-              Already registered?{' '}
+              {t('auth.haveAccount')}{' '}
               <Link
                 href="/login"
                 className="font-medium text-sky-400 hover:text-sky-300 transition-colors"
               >
-                Sign in
+                {t('auth.signIn')}
               </Link>
             </>
           )}

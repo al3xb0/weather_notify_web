@@ -30,7 +30,7 @@ export interface paths {
         get: operations["UsersController_me"];
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["UsersController_deleteMe"];
         options?: never;
         head?: never;
         patch: operations["UsersController_updateMe"];
@@ -174,6 +174,38 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["AuthController_verifyEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_forgotPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_resetPassword"];
         delete?: never;
         options?: never;
         head?: never;
@@ -324,6 +356,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/geocode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GeocodeController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weather": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ForecastController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/stats": {
         parameters: {
             query?: never;
@@ -417,14 +481,15 @@ export interface components {
             createdAt: string;
         };
         UpdateProfileDto: Record<string, never>;
+        DeleteAccountDto: Record<string, never>;
+        SuccessResultDto: {
+            success: boolean;
+        };
         TelegramLinkDto: {
             /** @description Deep link the user opens to bind their chat */
             url: string;
             /** Format: uuid */
             token: string;
-        };
-        SuccessResultDto: {
-            success: boolean;
         };
         PushSubscriptionResponseDto: {
             /** Format: uuid */
@@ -452,6 +517,15 @@ export interface components {
         VerifyEmailDto: Record<string, never>;
         VerifyEmailResultDto: {
             verified: boolean;
+        };
+        ForgotPasswordDto: Record<string, never>;
+        ForgotPasswordResultDto: {
+            /** @description Always true — the response is identical for known and unknown addresses */
+            accepted: boolean;
+        };
+        ResetPasswordDto: Record<string, never>;
+        ResetPasswordResultDto: {
+            reset: boolean;
         };
         ResendVerificationResultDto: {
             sent: boolean;
@@ -558,6 +632,33 @@ export interface components {
             createdAt: string;
         };
         CreatePinnedCityDto: Record<string, never>;
+        GeocodeResultDto: {
+            name: string;
+            country?: Record<string, never> | null;
+            admin1?: Record<string, never> | null;
+            latitude: number;
+            longitude: number;
+        };
+        CurrentWeatherDto: {
+            time: string;
+            temperature: number;
+            apparentTemp: number;
+            humidity: number;
+            windSpeed: number;
+            precipitation: number;
+            weatherCode: number;
+        };
+        DailyForecastDto: {
+            date: string;
+            weatherCode: number;
+            tempMax: number;
+            tempMin: number;
+            precipitationProbability?: Record<string, never> | null;
+        };
+        ForecastResponseDto: {
+            current: components["schemas"]["CurrentWeatherDto"];
+            daily: components["schemas"]["DailyForecastDto"][];
+        };
         AdminStatsDto: {
             users: number;
             verifiedUsers: number;
@@ -643,6 +744,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfileResponseDto"];
+                };
+            };
+        };
+    };
+    UsersController_deleteMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteAccountDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResultDto"];
                 };
             };
         };
@@ -895,6 +1019,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VerifyEmailResultDto"];
+                };
+            };
+        };
+    };
+    AuthController_forgotPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForgotPasswordResultDto"];
+                };
+            };
+        };
+    };
+    AuthController_resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResetPasswordResultDto"];
                 };
             };
         };
@@ -1220,6 +1390,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IdResultDto"];
+                };
+            };
+        };
+    };
+    GeocodeController_search: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeocodeResultDto"][];
+                };
+            };
+        };
+    };
+    ForecastController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForecastResponseDto"];
                 };
             };
         };
