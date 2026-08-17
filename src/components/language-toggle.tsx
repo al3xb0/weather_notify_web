@@ -3,8 +3,12 @@
 import { LOCALES, LOCALE_LABELS, storeLocale, useLocale, useT } from '@/i18n';
 
 /**
- * Two languages, so a segmented control rather than a dropdown: a select for
- * two options costs a click to discover what the other one is.
+ * A segmented control rather than a dropdown: at this handful of languages a
+ * select costs a click to discover what the options even are. The visible
+ * label is the locale code, which is legible in any of them; the accessible
+ * name is the endonym, so a screen reader announces "Polski" and not "P L".
+ *
+ * Worth revisiting past six or so, where the row stops fitting a phone.
  */
 export function LanguageToggle() {
   const locale = useLocale();

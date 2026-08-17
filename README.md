@@ -38,7 +38,7 @@ hold.
 - **Password reset** and **account deletion**, both confirmed the way the API requires
 - **Admin panel** (role-gated) — users, stats and trigger management
 - **Light and dark themes**, following the OS by default, with no flash on load
-- **English and Russian**, with real plural rules rather than a trailing "s"
+- **English, Russian and Polish**, with real plural rules rather than a trailing "s"
 - Responsive UI with email-verification banner and optimistic mutations
 
 ## Tech stack
@@ -58,18 +58,27 @@ component keeps saying `bg-card` and `text-ink`, so the light palette is
 thirteen redefinitions rather than a second stylesheet. `color-scheme` tracks
 the same states, or a light page renders a dark date picker.
 
-**Language** is English and Russian, in flat catalogues under `src/i18n`. `en`
-is the source of truth: `MessageKey` derives from it and every other language
-is `Record<MessageKey, string>`, so a missing translation is a build error.
-Plurals go through `Intl.PluralRules` — Russian needs запись / записи /
-записей, and 21 takes the singular form, which is exactly what a `count === 1`
-check gets wrong.
+**Language** is English, Russian and Polish, in flat catalogues under
+`src/i18n/messages`. Keys stay flat and fully qualified (`triggers.count`)
+because that is how they read at call sites; the files are split by area, one
+per section per language, so a string is edited where it belongs. `en` is the
+source of truth: `MessageKey` derives from it, and each translated section is
+typed against the English section of the same name — a forgotten key is a build
+error in the file that forgot it, naming the key, rather than one unreadable
+mismatch on the assembled catalogue.
+
+Plurals go through `Intl.PluralRules`, which is the only way this works past
+English. Russian needs запись / записи / записей and takes the singular at 21;
+Polish needs alert / alerty / alertów and disagrees with Russian about 21 and
+22. Neither is a rule you can spell as `count === 1`.
 
 Both choices are read with `useSyncExternalStore` rather than copied into state
 by an effect, which keeps several open tabs in step through the `storage`
 event. A small script in `<head>` applies each before first paint: otherwise
 every navigation renders in the wrong theme and snaps, and `<html lang>` would
-claim English while the page shows Russian.
+claim English while the page shows Russian. That script reads `LOCALES`
+rather than listing the codes, so a new language is announced correctly from
+the first paint instead of after hydration.
 
 ## Rendering model
 
@@ -108,11 +117,17 @@ for `docker compose up`.
 
 ### Adding a language
 
-Copy `src/i18n/messages.ts`'s `ru` block, translate the values, and add the
-locale to `LOCALES` and `LOCALE_LABELS`. TypeScript names every key you have
-not translated yet. If the language distinguishes plural categories English
-does not, add `key_one` / `key_few` / `key_many` beside the bare key — the bare
-one is always the `other` form.
+Copy `src/i18n/messages/en/` to `src/i18n/messages/<code>/`, translate the
+values, and add the code to `LOCALES` and `LOCALE_LABELS` in
+`src/i18n/locales.ts`. Nothing else is wired by hand: the picker, the pre-paint
+`<html lang>` script and the catalogue tests all read `LOCALES`, and the tests
+run over every locale in it.
+
+TypeScript names every key you have not translated yet, in the file that owes
+it. If the language distinguishes plural categories English does not, add
+`key_one` / `key_few` / `key_many` beside the bare key — the bare one is always
+the `other` form, and the suite checks you added only forms the language
+actually selects.
 
 ## Environment
 

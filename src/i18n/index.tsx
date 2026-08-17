@@ -1,13 +1,9 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import {
-  LOCALES,
-  LOCALE_LABELS,
-  messages,
-  type Locale,
-  type MessageKey,
-} from './messages';
+import { LOCALES, LOCALE_LABELS, type Locale } from './locales';
+import { messages } from './messages';
+import type { MessageKey } from './types';
 
 export { LOCALES, LOCALE_LABELS, type Locale, type MessageKey };
 
@@ -136,5 +132,12 @@ export function useT(): Translate {
 /**
  * Runs before first paint alongside the theme script, so the document's `lang`
  * is right from the first render rather than after hydration.
+ *
+ * The list of locales is interpolated rather than written out, because a
+ * hard-coded one silently stops honouring a language the moment another is
+ * added: the catalogue would be complete, the picker would offer it, and the
+ * document would still claim to be in English until React took over.
  */
-export const LOCALE_INIT_SCRIPT = `(function(){try{var l=localStorage.getItem('${LOCALE_STORAGE_KEY}');if(!l){l=(navigator.language||'en').split('-')[0]}if(l==='ru'||l==='en'){document.documentElement.setAttribute('lang',l)}}catch(e){}})()`;
+export const LOCALE_INIT_SCRIPT = `(function(){try{var s=${JSON.stringify(
+  LOCALES,
+)};var l=localStorage.getItem('${LOCALE_STORAGE_KEY}');if(!l){l=(navigator.language||'en').split('-')[0]}if(s.indexOf(l)>-1){document.documentElement.setAttribute('lang',l)}}catch(e){}})()`;

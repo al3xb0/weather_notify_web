@@ -17,13 +17,25 @@ jobs:
       # repository lands in ./api-spec rather than the ../weather_notify the
       # local gen:api script expects. Only the document is needed.
       #
-      # The repository is a variable so a fork does not have to edit this file
-      # to get a green build: set the API_REPO variable (Settings → Secrets and
-      # variables → Actions → Variables) to your own fork. The default is the
-      # upstream one.
-      - uses: actions/checkout@v4
+      # Try the same owner as this repository first, so a fork of both builds
+      # green against its own contract with nothing to configure. This used to
+      # read a repository variable, which meant every fork had to set one
+      # before its first build could pass.
+      - id: fork-spec
+        continue-on-error: true
+        uses: actions/checkout@v4
         with:
-          repository: ${{ vars.API_REPO || 'al3xb0/weather_notify' }}
+          repository: ${{ github.repository_owner }}/weather_notify
+          path: api-spec
+          sparse-checkout: openapi.json
+          sparse-checkout-cone-mode: false
+
+      # A fork of the UI alone has no API repository to read, and checking the
+      # types against upstream is a better answer than failing to check them.
+      - if: steps.fork-spec.outcome == 'failure'
+        uses: actions/checkout@v4
+        with:
+          repository: al3xb0/weather_notify
           path: api-spec
           sparse-checkout: openapi.json
           sparse-checkout-cone-mode: false
