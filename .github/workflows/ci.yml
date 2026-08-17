@@ -52,7 +52,25 @@ jobs:
       # The API repository has enforced formatting since it had a pre-commit
       # hook; this side had neither, and the style drifted file by file.
       - run: npm run format:check
-      - run: npm run test
+
+      # With coverage, and without a threshold. The API repository gates on a
+      # percentage because its suites are the only proof its services behave;
+      # here the report answers a different question — which of these files no
+      # test touches at all — and a gate would answer it by failing builds
+      # rather than by being read.
+      - run: npm run test:cov
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          set -euo pipefail
+          [ -f coverage/coverage-summary.json ] || exit 0
+          jq -r '.total | "| Metric | Covered |", "| --- | --- |",
+            "| Statements | \(.statements.pct)% (\(.statements.covered)/\(.statements.total)) |",
+            "| Branches | \(.branches.pct)% (\(.branches.covered)/\(.branches.total)) |",
+            "| Functions | \(.functions.pct)% (\(.functions.covered)/\(.functions.total)) |",
+            "| Lines | \(.lines.pct)% (\(.lines.covered)/\(.lines.total)) |"' \
+            coverage/coverage-summary.json >> "$GITHUB_STEP_SUMMARY"
 
       # The API's own CI proves openapi.json matches its controllers; this
       # proves the committed client types still match openapi.json. Without it

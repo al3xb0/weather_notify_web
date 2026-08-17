@@ -142,6 +142,7 @@ actually selects.
 
 ```bash
 npm test          # Vitest unit/component tests (auth form, trigger form, api client)
+npm run test:cov  # the same, with a coverage report
 npm run test:e2e  # Playwright, in a real browser against the production build
 ```
 
@@ -158,6 +159,14 @@ The API is stubbed per test with `page.route`, including the CORS headers a
 cross-origin call actually needs — the backend proves its own behaviour against
 a live Postgres in its repository, and what is unproven here is that this app
 drives it correctly and renders what comes back.
+
+Coverage is reported in CI and **not** gated on a threshold. It counts every file
+under `src/`, not only the ones a test imports, because the number worth knowing
+is which files no test touches at all — a report built from the imported files
+alone always looks good. It is currently around 43% of lines, concentrated in the
+forms and the api client; the data hooks, the session bootstrap and the push
+subscription are the notable gaps. A percentage gate would answer that by
+failing builds instead of by being read.
 
 ```bash
 npm run screenshots   # regenerate the README images
