@@ -69,8 +69,7 @@ mismatch on the assembled catalogue.
 
 Plurals go through `Intl.PluralRules`, which is the only way this works past
 English. Russian needs запись / записи / записей and takes the singular at 21;
-Polish needs alert / alerty / alertów and disagrees with Russian about 21 and
-22. Neither is a rule you can spell as `count === 1`.
+Polish needs alert / alerty / alertów and disagrees with Russian about 21 and 22. Neither is a rule you can spell as `count === 1`.
 
 Both choices are read with `useSyncExternalStore` rather than copied into state
 by an effect, which keeps several open tabs in step through the `storage`
