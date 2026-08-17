@@ -15,6 +15,12 @@ create weather triggers for any city, and manage delivery over Telegram, Email a
 ![Weather](docs/screenshots/weather.png)
 ![Settings](docs/screenshots/settings.png)
 
+The same dashboard in the light theme and in Russian — both are the same
+components, reading different tokens and a different catalogue:
+
+![Light theme](docs/screenshots/dashboard-light.png)
+![Russian](docs/screenshots/dashboard-ru.png)
+
 </details>
 
 Captured with `npm run screenshots`, which drives the production build against
@@ -29,13 +35,41 @@ hold.
 - **Condition builder** — metric / operator / threshold, AND/OR logic, or a severe-weather preset
 - **Notifications history** with per-channel delivery status
 - **Settings** — link Telegram (deep link) and enable **Web Push** (service worker)
+- **Password reset** and **account deletion**, both confirmed the way the API requires
 - **Admin panel** (role-gated) — users, stats and trigger management
-- Responsive, dark UI with email-verification banner and optimistic mutations
+- **Light and dark themes**, following the OS by default, with no flash on load
+- **English and Russian**, with real plural rules rather than a trailing "s"
+- Responsive UI with email-verification banner and optimistic mutations
 
 ## Tech stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Zustand ·
-TanStack Query · react-hook-form + zod · axios · Vitest + Testing Library.
+TanStack Query · react-hook-form + zod · axios · Vitest + Testing Library ·
+Playwright.
+
+## Theming and language
+
+Both are the same shape, and neither uses a library.
+
+**Theme** is three states — follow the OS, force light, force dark — because a
+two-way toggle cannot express "follow the OS", and once it has written a
+preference the user cannot get back to it. Only design tokens change: every
+component keeps saying `bg-card` and `text-ink`, so the light palette is
+thirteen redefinitions rather than a second stylesheet. `color-scheme` tracks
+the same states, or a light page renders a dark date picker.
+
+**Language** is English and Russian, in flat catalogues under `src/i18n`. `en`
+is the source of truth: `MessageKey` derives from it and every other language
+is `Record<MessageKey, string>`, so a missing translation is a build error.
+Plurals go through `Intl.PluralRules` — Russian needs запись / записи /
+записей, and 21 takes the singular form, which is exactly what a `count === 1`
+check gets wrong.
+
+Both choices are read with `useSyncExternalStore` rather than copied into state
+by an effect, which keeps several open tabs in step through the `storage`
+event. A small script in `<head>` applies each before first paint: otherwise
+every navigation renders in the wrong theme and snaps, and `<html lang>` would
+claim English while the page shows Russian.
 
 ## Rendering model
 
@@ -72,6 +106,14 @@ npm run dev                    # http://localhost:3001
 The backend API must be running (default `http://localhost:3000`). See the backend repo
 for `docker compose up`.
 
+### Adding a language
+
+Copy `src/i18n/messages.ts`'s `ru` block, translate the values, and add the
+locale to `LOCALES` and `LOCALE_LABELS`. TypeScript names every key you have
+not translated yet. If the language distinguishes plural categories English
+does not, add `key_one` / `key_few` / `key_many` beside the bare key — the bare
+one is always the `other` form.
+
 ## Environment
 
 | Variable                       | Description                                             |
@@ -101,8 +143,15 @@ dev server, since that is what ships.
 The API is stubbed per test with `page.route`, including the CORS headers a
 cross-origin call actually needs — the backend proves its own behaviour against
 a live Postgres in its repository, and what is unproven here is that this app
-drives it correctly and renders what comes back. The Open-Meteo geocoder is
-stubbed too, so the suite does not depend on a third party being up.
+drives it correctly and renders what comes back.
+
+```bash
+npm run screenshots   # regenerate the README images
+```
+
+Screenshots are a third use of the same stubs: a fixed clock and fixed
+fixtures, written into both repositories. Their config is separate from the
+test project, so a copy change cannot fail CI over a stale image.
 
 ## Deployment
 
