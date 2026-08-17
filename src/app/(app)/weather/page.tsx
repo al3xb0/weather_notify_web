@@ -17,6 +17,7 @@ import { SkeletonCard } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/toast';
 import type { GeoResult } from '@/lib/geocode';
 import type { PinnedCity } from '@/lib/types';
+import { useT } from '@/i18n';
 
 interface SelectedLocation {
   name: string;
@@ -61,6 +62,7 @@ function locationSubtitle(loc: SelectedLocation): string {
 }
 
 export default function WeatherPage() {
+  const t = useT();
   const [selected, setSelected] = useState<SelectedLocation | null>(null);
   const pinnedQuery = usePinnedCities();
   const pinned = pinnedQuery.data;
@@ -91,10 +93,10 @@ export default function WeatherPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-2xl font-bold text-ink">Weather</h1>
-        <p className="mt-0.5 text-sm text-ink-dim">
-          Look up any city and pin the ones you watch
-        </p>
+        <h1 className="font-heading text-2xl font-bold text-ink">
+          {t('weather.title')}
+        </h1>
+        <p className="mt-0.5 text-sm text-ink-dim">{t('weather.subtitle')}</p>
       </div>
 
       <div className="max-w-md">
@@ -120,7 +122,7 @@ export default function WeatherPage() {
                 disabled={removePin.isPending}
                 className="shrink-0 rounded-xl border border-rim px-3.5 py-2 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:opacity-50"
               >
-                ★ Pinned
+                {t('weather.pinned!')}
               </button>
             ) : (
               <button
@@ -128,12 +130,12 @@ export default function WeatherPage() {
                 disabled={addPin.isPending || atLimit}
                 title={
                   atLimit
-                    ? `Pin limit reached (max ${maxPinnedCities})`
+                    ? t('weather.pinLimit', { max: maxPinnedCities })
                     : undefined
                 }
                 className="shrink-0 rounded-xl bg-sky-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
               >
-                {addPin.isPending ? 'Pinning…' : '☆ Pin city'}
+                {addPin.isPending ? t('weather.pinning') : t('weather.pin')}
               </button>
             )}
           </div>
@@ -147,11 +149,14 @@ export default function WeatherPage() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-heading text-sm font-semibold text-ink-dim">
-            Pinned cities
+            {t('weather.pinned')}
           </h2>
           {!!pinned && pinned.length > 0 && (
             <span className="text-xs text-ink-dim/60">
-              {pinned.length} of {maxPinnedCities}
+              {t('weather.pinnedCount', {
+                count: pinned.length,
+                max: maxPinnedCities,
+              })}
             </span>
           )}
         </div>

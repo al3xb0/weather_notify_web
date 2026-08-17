@@ -382,3 +382,14 @@ test('dashboard in light theme', async ({ page }) => {
   await settle(page);
   await shoot(page, 'dashboard-light');
 });
+
+test('dashboard in Russian', async ({ page }) => {
+  await stub(page);
+  await page.addInitScript(() => {
+    localStorage.setItem('wn-locale', 'ru');
+  });
+  await page.goto('/dashboard');
+  await expect(page.getByRole('heading', { name: 'Триггеры' })).toBeVisible();
+  await settle(page);
+  await shoot(page, 'dashboard-ru');
+});

@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { TriggerList } from '@/components/triggers/trigger-list';
 import type { Paginated, Trigger } from '@/lib/types';
+import { useT } from '@/i18n';
 
 function PlusIcon() {
   return (
@@ -44,6 +45,7 @@ function RadarIcon() {
 }
 
 export default function DashboardPage() {
+  const t = useT();
   const triggers = useTriggers();
   const { maxTriggersPerUser } = useApiLimits();
   const clearAll = useClearTriggers();
@@ -59,11 +61,13 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-ink">Triggers</h1>
+          <h1 className="font-heading text-2xl font-bold text-ink">
+            {t('triggers.title')}
+          </h1>
           <p className="mt-0.5 text-sm text-ink-dim">
             {triggers.data
-              ? `${count} of ${maxTriggersPerUser} monitor${count !== 1 ? 's' : ''}`
-              : 'Weather monitors'}
+              ? t('triggers.count', { count, max: maxTriggersPerUser })
+              : t('triggers.subtitle')}
           </p>
         </div>
         {!editorOpen && (
@@ -74,7 +78,7 @@ export default function DashboardPage() {
                 disabled={clearAll.isPending}
                 className="focus-ring rounded-xl border border-danger-bg px-3.5 py-2 text-xs font-medium text-red-400 transition-colors hover:border-red-500/30 hover:bg-danger-bg disabled:opacity-50"
               >
-                Clear all
+                {t('triggers.clearAll')}
               </button>
             )}
             <button
@@ -88,7 +92,7 @@ export default function DashboardPage() {
               className="focus-ring flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-sky-400 hover:shadow-sky-400/25 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:bg-sky-500"
             >
               <PlusIcon />
-              New trigger
+              {t('triggers.new')}
             </button>
           </div>
         )}

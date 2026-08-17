@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { NotificationRow } from '@/components/notifications/notification-row';
 import type { NotificationItem, Paginated } from '@/lib/types';
+import { useT } from '@/i18n';
 
 const PAGER_BUTTON =
   'focus-ring rounded-xl border border-rim px-3.5 py-2 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink disabled:cursor-not-allowed disabled:opacity-40';
@@ -37,6 +38,7 @@ function BellIcon() {
 }
 
 export default function NotificationsPage() {
+  const t = useT();
   const [page, setPage] = useState(1);
   const [confirmClear, setConfirmClear] = useState(false);
   const notifications = useNotifications(page);
@@ -62,12 +64,12 @@ export default function NotificationsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl font-bold text-ink">
-            Notifications
+            {t('notifications.title')}
           </h1>
           <p className="mt-0.5 text-sm text-ink-dim">
             {data
-              ? `${data.total} alert${data.total !== 1 ? 's' : ''} logged`
-              : 'Alert history'}
+              ? t('notifications.count', { count: data.total })
+              : t('notifications.subtitle')}
           </p>
         </div>
         {!!data?.items.length && (
@@ -76,7 +78,7 @@ export default function NotificationsPage() {
             disabled={clear.isPending}
             className="focus-ring shrink-0 rounded-xl border border-danger-bg px-3.5 py-2 text-xs font-medium text-red-400 transition-colors hover:border-red-500/30 hover:bg-danger-bg disabled:opacity-50"
           >
-            Clear all
+            {t('notifications.clearAll')}
           </button>
         )}
       </div>
