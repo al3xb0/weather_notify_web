@@ -15,11 +15,10 @@ create weather triggers for any city, and manage delivery over Telegram, Email a
 ![Weather](docs/screenshots/weather.png)
 ![Settings](docs/screenshots/settings.png)
 
-The same dashboard in the light theme and in Russian — both are the same
-components, reading different tokens and a different catalogue:
+The same dashboard in the light theme — the same components, reading a
+different set of tokens:
 
 ![Light theme](docs/screenshots/dashboard-light.png)
-![Russian](docs/screenshots/dashboard-ru.png)
 
 </details>
 
@@ -37,8 +36,8 @@ hold.
 - **Settings** — link Telegram (deep link) and enable **Web Push** (service worker)
 - **Password reset** and **account deletion**, both confirmed the way the API requires
 - **Admin panel** (role-gated) — users, stats and trigger management
-- **Light and dark themes**, following the OS by default, with no flash on load
-- **English, Russian and Polish**, with real plural rules rather than a trailing "s"
+- **Dark by default with an opt-in light theme**, switchable without signing in and with no flash on load
+- **Every string in a catalogue**, addressed by key and pluralised through `Intl.PluralRules`
 - Responsive UI with email-verification banner and optimistic mutations
 
 ## Tech stack
@@ -49,35 +48,39 @@ Playwright.
 
 ## Theming and language
 
-Both are the same shape, and neither uses a library.
+Neither uses a library.
 
-**Theme** is three states — follow the OS, force light, force dark — because a
-two-way toggle cannot express "follow the OS", and once it has written a
-preference the user cannot get back to it. Only design tokens change: every
-component keeps saying `bg-card` and `text-ink`, so the light palette is
-thirteen redefinitions rather than a second stylesheet. `color-scheme` tracks
-the same states, or a light page renders a dark date picker.
+**Theme** is two states: dark, which is what the app was designed in, and an
+opt-in light. Following the OS used to be a third, and it mostly served to
+render the product in a theme nobody had looked at — so the default is now dark
+regardless of the system setting, and the switch says only which of the two you
+want. Only design tokens change: every component keeps saying `bg-card` and
+`text-ink`, so the light palette is thirteen redefinitions rather than a second
+stylesheet. `color-scheme` tracks the same two states, or a light page renders
+a dark date picker.
 
-**Language** is English, Russian and Polish, in flat catalogues under
-`src/i18n/messages`. Keys stay flat and fully qualified (`triggers.count`)
-because that is how they read at call sites; the files are split by area, one
-per section per language, so a string is edited where it belongs. `en` is the
-source of truth: `MessageKey` derives from it, and each translated section is
-typed against the English section of the same name — a forgotten key is a build
-error in the file that forgot it, naming the key, rather than one unreadable
-mismatch on the assembled catalogue.
+The switch lives in the site footer, which the root layout renders on every
+page. It used to sit in the app header, which put it behind sign-in — and the
+sign-in screen is exactly where someone first meets a theme they did not
+choose.
 
-Plurals go through `Intl.PluralRules`, which is the only way this works past
-English. Russian needs запись / записи / записей and takes the singular at 21;
-Polish needs alert / alerty / alertów and disagrees with Russian about 21 and 22. Neither is a rule you can spell as `count === 1`.
+The choice is read with `useSyncExternalStore` rather than copied into state by
+an effect, which keeps several open tabs in step through the `storage` event. A
+small script in `<head>` stamps it before first paint; without it every
+navigation renders dark and snaps to light for anyone who picked light.
 
-Both choices are read with `useSyncExternalStore` rather than copied into state
-by an effect, which keeps several open tabs in step through the `storage`
-event. A small script in `<head>` applies each before first paint: otherwise
-every navigation renders in the wrong theme and snaps, and `<html lang>` would
-claim English while the page shows Russian. That script reads `LOCALES`
-rather than listing the codes, so a new language is announced correctly from
-the first paint instead of after hydration.
+**Language** is English, and every user-facing string still goes through
+`useT()` and a catalogue under `src/i18n/messages/en/` rather than being
+written at the call site. Keys stay flat and fully qualified
+(`triggers.count`) because that is how they read at call sites; the files are
+split by area, so a string is edited where it belongs. `MessageKey` derives
+from the catalogue, so a typo in a key is a build error rather than a label
+that renders its own name.
+
+Plurals go through `Intl.PluralRules` rather than a `count === 1` check: the
+bare key is the `other` form and `key_one` sits beside it. English needs only
+those two, but the lookup is general — a language with `few` and `many` drops
+in without touching it.
 
 ## Rendering model
 
@@ -116,17 +119,24 @@ for `docker compose up`.
 
 ### Adding a language
 
-Copy `src/i18n/messages/en/` to `src/i18n/messages/<code>/`, translate the
-values, and add the code to `LOCALES` and `LOCALE_LABELS` in
-`src/i18n/locales.ts`. Nothing else is wired by hand: the picker, the pre-paint
-`<html lang>` script and the catalogue tests all read `LOCALES`, and the tests
-run over every locale in it.
+The UI ships in English only, but the catalogue is still keyed by locale, so a
+second language is: copy `src/i18n/messages/en/` to
+`src/i18n/messages/<code>/`, translate the values, widen `Locale` in
+`src/i18n/locales.ts` to a union of the codes, and add the catalogue to
+`messages`. `Section<T>` types each translated file against the English section
+of the same name, so TypeScript names every key you have not translated yet, in
+the file that owes it.
 
-TypeScript names every key you have not translated yet, in the file that owes
-it. If the language distinguishes plural categories English does not, add
+Then bring back a picker — a `radiogroup` beside the theme switch is what this
+had before — and stamp `<html lang>` from the stored choice in a pre-paint
+script, or the document claims English while the page shows something else.
+
+If the language distinguishes plural categories English does not, add
 `key_one` / `key_few` / `key_many` beside the bare key — the bare one is always
-the `other` form, and the suite checks you added only forms the language
-actually selects.
+the `other` form. Russian needs запись / записи / записей and takes the
+singular at 21; Polish disagrees with it about 21 and 22. Neither is a rule you
+can spell as `count === 1`, which is why the lookup goes through
+`Intl.PluralRules`.
 
 ## Environment
 

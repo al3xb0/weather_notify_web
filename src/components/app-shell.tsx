@@ -8,9 +8,16 @@ import { logout, useProfile, useResendVerification } from '@/lib/hooks';
 import { apiError } from '@/lib/api';
 import { useAuthBootstrap } from '@/lib/use-auth-bootstrap';
 import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-toggle';
 import { useT } from '@/i18n';
+
+/**
+ * Wider than the `max-w-5xl` content below it: the bar carries the logo, five
+ * nav links, the signed-in address and the sign-out button on one row, and at
+ * the content width those stop fitting — which is what used to push the nav
+ * off-centre and wrap "Log out" onto two lines.
+ */
+const HEADER_ROW =
+  'mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:grid lg:grid-cols-[1fr_auto_1fr]';
 
 const NAV = [
   {
@@ -174,19 +181,22 @@ function EmailVerificationBanner() {
 function AppShellSkeleton() {
   const t = useT();
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="flex flex-1 flex-col bg-surface">
       <header className="sticky top-0 z-50 border-b border-rim bg-canvas/90 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
+        <div className={HEADER_ROW}>
           <div className="flex items-center gap-2.5">
             <LogoMark />
             <span className="font-heading text-sm font-semibold tracking-wide text-ink">
               Weather Notify
             </span>
           </div>
-          <Skeleton className="h-7 w-24" />
+          <Skeleton className="hidden h-7 w-80 lg:block" />
+          <Skeleton className="h-7 w-24 lg:justify-self-end" />
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      {/* `w-full` because an auto margin on a flex child shrinks it to its
+          content instead of stretching — the shell is a column now. */}
+      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <SkeletonList count={3} label={t('shell.restoring')} />
       </main>
     </div>
@@ -249,7 +259,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="flex flex-1 flex-col bg-surface">
       <a
         href="#main"
         className="skip-link focus-ring rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white"
@@ -258,7 +268,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </a>
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-rim bg-canvas/90 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
+        <div className={HEADER_ROW}>
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
             <LogoMark />
@@ -267,15 +277,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden sm:flex items-center gap-1">
+          {/*
+            The centre column of the grid, so the links sit on the middle of
+            the bar rather than wherever the two sides happen to leave them.
+            Full nav from `lg`: below that the five links plus the address do
+            not fit a row, and the menu carries them instead.
+          */}
+          <nav className="hidden items-center gap-0.5 lg:flex lg:justify-self-center xl:gap-1">
             {navItems.map((item) => {
               const active = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors xl:px-3 ${
                     active
                       ? 'bg-sky-500/10 text-sky-400'
                       : 'text-ink-dim hover:bg-elevated hover:text-ink'
@@ -289,24 +304,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center gap-2">
-            <span className="hidden text-xs text-ink-dim sm:inline truncate max-w-40">
+          <div className="flex items-center gap-2 lg:justify-self-end">
+            {/* No truncation: half an address identifies nobody, and the row
+                is sized to hold it. */}
+            <span className="hidden whitespace-nowrap text-xs text-ink-dim lg:inline">
               {email}
             </span>
-            <div className="hidden items-center gap-2 sm:flex">
-              <LanguageToggle />
-              <ThemeToggle />
-            </div>
             <button
               onClick={onLogout}
-              className="rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
+              className="whitespace-nowrap rounded-lg border border-rim px-3 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-rim-bright hover:text-ink"
             >
               {t('nav.logout')}
             </button>
             {/* Mobile hamburger */}
             <button
               onClick={() => setMenuOpenFor(menuOpen ? null : pathname)}
-              className="flex items-center justify-center rounded-lg border border-rim p-1.5 text-ink-dim transition-colors hover:bg-elevated hover:text-ink sm:hidden"
+              className="flex items-center justify-center rounded-lg border border-rim p-1.5 text-ink-dim transition-colors hover:bg-elevated hover:text-ink lg:hidden"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             >
               <HamburgerIcon open={menuOpen} />
@@ -316,7 +329,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="border-t border-rim bg-canvas sm:hidden">
+          <div className="border-t border-rim bg-canvas lg:hidden">
             <nav className="flex flex-col gap-1 px-4 py-3">
               {navItems.map((item) => {
                 const active = pathname === item.href;
@@ -336,22 +349,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 );
               })}
               <div className="mt-2 border-t border-rim pt-2 pb-1">
-                <p className="px-3 py-1 text-xs text-ink-dim truncate">
+                {/* Wrapped rather than clipped: the address is the only thing
+                    on the row saying which account this is. */}
+                <p className="px-3 py-1 text-xs break-all text-ink-dim">
                   {email}
                 </p>
-                {/* The header copy is hidden below `sm`, so the menu carries
-                    it — otherwise the setting is unreachable on a phone. */}
-                <div className="flex items-center gap-2 px-3 py-2">
-                  <LanguageToggle />
-                  <ThemeToggle />
-                </div>
               </div>
             </nav>
           </div>
         )}
       </header>
 
-      <main id="main" className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <main id="main" className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <EmailVerificationBanner />
         {children}
       </main>

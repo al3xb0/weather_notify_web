@@ -14,13 +14,10 @@ describe('ThemeToggle', () => {
     document.documentElement.removeAttribute('data-theme');
   });
 
-  it('starts on system when nothing was stored', async () => {
+  it('starts on dark when nothing was stored', async () => {
     render(<ThemeToggle />);
 
-    expect(await screen.findByRole('radio', { name: 'System' })).toBeChecked();
-    // No attribute means "follow the OS", so the page keeps tracking it if the
-    // user changes their system setting while the tab is open.
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+    expect(await screen.findByRole('radio', { name: 'Dark' })).toBeChecked();
   });
 
   it('stamps the root and stores the choice', async () => {
@@ -31,27 +28,25 @@ describe('ThemeToggle', () => {
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
   });
 
-  it('returning to system clears both, rather than storing "system"', async () => {
+  it('stores dark explicitly rather than clearing the key', async () => {
     render(<ThemeToggle />);
+    await userEvent.click(screen.getByRole('radio', { name: 'Light' }));
     await userEvent.click(screen.getByRole('radio', { name: 'Dark' }));
-    await userEvent.click(screen.getByRole('radio', { name: 'System' }));
 
-    // A stored "system" would be indistinguishable from a stale value the
-    // pre-paint script has to interpret; absence is the simpler signal.
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
   });
 
   it('restores the stored choice on mount', async () => {
-    localStorage.setItem(THEME_STORAGE_KEY, 'dark');
+    localStorage.setItem(THEME_STORAGE_KEY, 'light');
     render(<ThemeToggle />);
 
-    expect(await screen.findByRole('radio', { name: 'Dark' })).toBeChecked();
+    expect(await screen.findByRole('radio', { name: 'Light' })).toBeChecked();
   });
 
   it('follows a change made in another tab', async () => {
     render(<ThemeToggle />);
-    expect(await screen.findByRole('radio', { name: 'System' })).toBeChecked();
+    expect(await screen.findByRole('radio', { name: 'Dark' })).toBeChecked();
 
     // What a second tab's write looks like here: storage already holds the new
     // value and the browser fires `storage`. Reading through an external store
@@ -62,24 +57,22 @@ describe('ThemeToggle', () => {
     expect(await screen.findByRole('radio', { name: 'Light' })).toBeChecked();
   });
 
-  it('exposes the three options as one radio group', () => {
+  it('exposes the two options as one radio group', () => {
     render(<ThemeToggle />);
 
-    const group = screen.getByRole('radiogroup', { name: 'Colour theme' });
-    expect(group).toBeInTheDocument();
-    // Three states rather than a switch, because a two-way toggle cannot say
-    // "follow the OS" — and once it has written a preference, the user cannot
-    // get back to it.
-    expect(screen.getAllByRole('radio')).toHaveLength(3);
+    expect(
+      screen.getByRole('radiogroup', { name: 'Colour theme' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
   });
 
   describe('applyTheme', () => {
-    it('sets an explicit theme and clears it for system', () => {
+    it('stamps the choice on the root', () => {
+      applyTheme('light');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+
       applyTheme('dark');
       expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-
-      applyTheme('system');
-      expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
     });
   });
 
@@ -93,10 +86,10 @@ describe('ThemeToggle', () => {
       expect(document.documentElement.getAttribute('data-theme')).toBe('light');
     });
 
-    it('leaves the root alone when nothing is stored', () => {
+    it('falls back to dark when nothing is stored', () => {
       run();
 
-      expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     });
 
     it('ignores a value that is not a theme', () => {
@@ -104,8 +97,8 @@ describe('ThemeToggle', () => {
       run();
 
       // The script runs before anything can catch an exception for it, so an
-      // unexpected value must be ignored rather than stamped onto the root.
-      expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+      // unexpected value must land on the default rather than on the root.
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     });
   });
 });

@@ -67,7 +67,7 @@ function UserDetailBody({
 
   return (
     <section
-      aria-label={`Details for ${user.email}`}
+      aria-label={t('admin.user.details', { email: user.email })}
       className="space-y-4 rounded-2xl border border-rim bg-card p-5"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -77,9 +77,11 @@ function UserDetailBody({
             <RoleBadge role={user.role} />
           </p>
           <p className="mt-0.5 text-xs text-ink-dim">
-            Joined {new Date(user.createdAt).toLocaleDateString()} ·{' '}
-            {user.notificationCount} notifications · {user.pinnedCityCount}{' '}
-            pinned
+            {t('admin.user.meta', {
+              date: new Date(user.createdAt).toLocaleDateString(),
+              notifications: user.notificationCount,
+              pinned: user.pinnedCityCount,
+            })}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -93,7 +95,9 @@ function UserDetailBody({
             disabled={update.isPending}
             className={ACTION}
           >
-            {user.emailVerified ? 'Unverify email' : 'Mark verified'}
+            {user.emailVerified
+              ? t('admin.user.unverify')
+              : t('admin.user.markVerified')}
           </button>
           <button
             onClick={() =>
@@ -103,10 +107,12 @@ function UserDetailBody({
               })
             }
             disabled={update.isPending || isSelf}
-            title={isSelf ? 'You cannot change your own role' : undefined}
+            title={isSelf ? t('admin.user.selfRole') : undefined}
             className={ACTION}
           >
-            {user.role === 'ADMIN' ? 'Demote to user' : 'Promote to admin'}
+            {user.role === 'ADMIN'
+              ? t('admin.user.demote')
+              : t('admin.user.promote')}
           </button>
           {!isSelf && (
             <button
@@ -114,7 +120,7 @@ function UserDetailBody({
               disabled={delUser.isPending}
               className="focus-ring rounded-lg border border-danger-bg px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:border-red-500/30 hover:bg-danger-bg disabled:opacity-50"
             >
-              Delete user
+              {t('admin.user.deleteUser')}
             </button>
           )}
         </div>
@@ -122,14 +128,21 @@ function UserDetailBody({
 
       <div className="flex flex-wrap gap-2 text-xs">
         <Pill on={user.emailVerified}>
-          {user.emailVerified ? 'Email verified' : 'Email unverified'}
+          {user.emailVerified
+            ? t('admin.user.emailVerified')
+            : t('admin.user.emailUnverified')}
         </Pill>
         <Pill on={user.telegramLinked}>
-          {user.telegramLinked ? 'Telegram linked' : 'No Telegram'}
+          {user.telegramLinked
+            ? t('admin.user.telegramLinked')
+            : t('admin.user.telegramNone')}
         </Pill>
         {(user.quietHoursStart || user.quietHoursEnd) && (
           <span className="rounded-full bg-elevated px-2 py-0.5 text-ink-dim">
-            Quiet {user.quietHoursStart ?? '—'}–{user.quietHoursEnd ?? '—'}
+            {t('admin.user.quiet', {
+              from: user.quietHoursStart ?? '—',
+              to: user.quietHoursEnd ?? '—',
+            })}
           </span>
         )}
         {user.timezone && (
@@ -141,10 +154,10 @@ function UserDetailBody({
 
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-dim">
-          Triggers ({user.triggers.length})
+          {t('admin.user.triggers', { count: user.triggers.length })}
         </p>
         {user.triggers.length === 0 ? (
-          <p className="text-sm text-ink-dim">No triggers.</p>
+          <p className="text-sm text-ink-dim">{t('admin.user.noTriggers')}</p>
         ) : (
           <ul className="space-y-2">
             {user.triggers.map((trigger) => (
@@ -162,7 +175,7 @@ function UserDetailBody({
                     </span>
                     {!trigger.isActive && (
                       <span className="shrink-0 text-[10px] text-ink-dim">
-                        paused
+                        {t('admin.user.paused')}
                       </span>
                     )}
                   </p>
@@ -176,7 +189,9 @@ function UserDetailBody({
                 </div>
                 <button
                   onClick={() => setConfirmTrigger(trigger)}
-                  aria-label={`Delete trigger ${trigger.name}`}
+                  aria-label={t('admin.user.deleteTriggerLabel', {
+                    name: trigger.name,
+                  })}
                   className="focus-ring shrink-0 text-ink-dim transition-colors hover:text-red-400"
                 >
                   <svg
@@ -202,9 +217,9 @@ function UserDetailBody({
 
       <ConfirmDialog
         open={confirmDeleteUser}
-        title="Delete this user?"
-        message={`This permanently removes ${user.email} and all of their triggers, notifications and pinned cities. This cannot be undone.`}
-        confirmLabel="Delete user"
+        title={t('admin.user.deleteUserTitle')}
+        message={t('admin.user.deleteUserMessage', { email: user.email })}
+        confirmLabel={t('admin.user.deleteUser')}
         danger
         pending={delUser.isPending}
         onConfirm={() =>
@@ -218,9 +233,12 @@ function UserDetailBody({
 
       <ConfirmDialog
         open={!!confirmTrigger}
-        title="Delete this trigger?"
-        message={`Permanently delete "${confirmTrigger?.name}" belonging to ${user.email}.`}
-        confirmLabel="Delete trigger"
+        title={t('admin.user.deleteTriggerTitle')}
+        message={t('admin.user.deleteTriggerMessage', {
+          name: confirmTrigger?.name ?? '',
+          email: user.email,
+        })}
+        confirmLabel={t('admin.user.deleteTrigger')}
         danger
         pending={delTrigger.isPending}
         onConfirm={() => {

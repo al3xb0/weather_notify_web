@@ -17,6 +17,4 @@ export const shell = {
   'theme.label': 'Colour theme',
   'theme.light': 'Light',
   'theme.dark': 'Dark',
-  'theme.system': 'System',
-  'language.label': 'Language',
 } as const;
